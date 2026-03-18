@@ -59,8 +59,14 @@ export default function Reminders() {
   );
 
   return (
-    <div>
-      <h1 className="text-xl font-bold text-slate-900 mb-4 sm:text-2xl">Reminders</h1>
+    <div className="space-y-4">
+      <div className="rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-white to-cyan-50 p-5 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary-600">Reminder Center</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Follow-ups that feel organized, not overwhelming.</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Track renewals, payment follow-up, expiry windows, and replacement completion with soft visual priority.
+        </p>
+      </div>
 
       <div className="space-y-2 mb-4">
         <TabBar items={PERIOD_TABS} value={period} onChange={setPeriod} />

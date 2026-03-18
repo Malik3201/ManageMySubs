@@ -15,6 +15,15 @@ const typeColors = {
   followup: 'bg-primary-50 text-primary-600',
 };
 
+const typeSurfaces = {
+  expiring_soon: 'from-white to-amber-50/90 border-amber-100/80',
+  expired: 'from-white to-rose-50/90 border-rose-100/80',
+  renewal_due: 'from-white to-blue-50/90 border-blue-100/80',
+  replacement_completed: 'from-white to-violet-50/90 border-violet-100/80',
+  payment_pending: 'from-white to-pink-50/90 border-pink-100/80',
+  followup: 'from-white to-cyan-50/90 border-cyan-100/80',
+};
+
 export default function ReminderCard({ reminder, onComplete, onDismiss }) {
   const [copied, setCopied] = useState(false);
   const sub = reminder.clientSubscriptionId;
@@ -28,9 +37,9 @@ export default function ReminderCard({ reminder, onComplete, onDismiss }) {
   };
 
   return (
-    <Card className="p-4">
+    <Card className={`border bg-gradient-to-br p-4 ${typeSurfaces[reminder.type] || 'from-white to-slate-50/90 border-slate-200'}`}>
       <div className="flex items-start gap-3">
-        <div className="rounded-lg bg-primary-50 p-2">
+        <div className="rounded-xl bg-white/75 p-2 shadow-sm">
           <Bell className="h-4 w-4 text-primary-600" />
         </div>
         <div className="flex-1 min-w-0">

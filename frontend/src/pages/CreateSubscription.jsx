@@ -104,10 +104,14 @@ export default function CreateSubscription() {
       <button onClick={() => navigate(-1)} className="mb-4 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
-      <h1 className="text-xl font-bold text-slate-900 mb-6">New Subscription</h1>
+      <div className="mb-6 rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-white to-emerald-50 p-5 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary-600">New Sale</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Create a subscription quickly</h1>
+        <p className="mt-1 text-sm text-slate-500">The form is organized for fast mobile entry with category defaults and clear payment inputs.</p>
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+        <div className="rounded-2xl border border-primary-100/80 bg-gradient-to-br from-white to-primary-50/80 p-5 space-y-4">
           <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Subscription Info</h2>
           <Select label="Category" options={catOptions} placeholder="Select category" error={errors.categoryId?.message} {...register('categoryId')} onChange={handleCategoryChange} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -119,7 +123,7 @@ export default function CreateSubscription() {
           <Input label="Purchase Date" type="date" {...register('purchaseDate')} />
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+        <div className="rounded-2xl border border-cyan-100/80 bg-gradient-to-br from-white to-cyan-50/80 p-5 space-y-4">
           <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Client Info</h2>
           <Input label="Client Name" placeholder="Client name" error={errors.clientName?.message} {...register('clientName')} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -128,7 +132,7 @@ export default function CreateSubscription() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+        <div className="rounded-2xl border border-emerald-100/80 bg-gradient-to-br from-white to-emerald-50/80 p-5 space-y-4">
           <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Pricing & Payment</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input label="Selling Price" type="number" step="0.01" {...register('sellingPrice')} />
@@ -141,7 +145,7 @@ export default function CreateSubscription() {
           <Input label="Payment Method" placeholder="e.g. Cash, UPI, Bank" {...register('paymentMethod')} />
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+        <div className="rounded-2xl border border-violet-100/80 bg-gradient-to-br from-white to-violet-50/80 p-5 space-y-4">
           <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Notes & Tags</h2>
           <Textarea label="Notes" placeholder="Optional notes..." {...register('notes')} />
           <div>

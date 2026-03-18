@@ -24,10 +24,16 @@ export default function Reports() {
   const loading = salesLoading || profitLoading;
 
   return (
-    <div>
-      <h1 className="text-xl font-bold text-slate-900 mb-4 sm:text-2xl">Reports</h1>
+    <div className="space-y-4">
+      <div className="rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-white to-violet-50 p-5 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary-600">Insights</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">See sales and profit in a cleaner, brighter view.</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Use the filters below to compare revenue trends and category profit contribution across time.
+        </p>
+      </div>
 
-      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4">
+      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-primary-50/70 p-4">
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-1">From</label>
           <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm" />
@@ -60,19 +66,19 @@ export default function Reports() {
         <div className="space-y-4">
           {profitData && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <Card><CardBody>
+              <Card className="border bg-gradient-to-br from-white to-blue-50/90 border-blue-100/80"><CardBody>
                 <p className="text-xs text-slate-500">Total Sales</p>
                 <p className="text-xl font-bold text-slate-900">{currency(profitData.totalSales)}</p>
               </CardBody></Card>
-              <Card><CardBody>
+              <Card className="border bg-gradient-to-br from-white to-emerald-50/90 border-emerald-100/80"><CardBody>
                 <p className="text-xs text-slate-500">Total Profit</p>
                 <p className="text-xl font-bold text-success-600">{currency(profitData.totalProfit)}</p>
               </CardBody></Card>
-              <Card><CardBody>
+              <Card className="border bg-gradient-to-br from-white to-amber-50/90 border-amber-100/80"><CardBody>
                 <p className="text-xs text-slate-500">Total Entries</p>
                 <p className="text-xl font-bold text-slate-900">{profitData.totalCount}</p>
               </CardBody></Card>
-              <Card><CardBody>
+              <Card className="border bg-gradient-to-br from-white to-violet-50/90 border-violet-100/80"><CardBody>
                 <p className="text-xs text-slate-500">Avg Profit</p>
                 <p className="text-xl font-bold text-primary-600">
                   {profitData.totalCount ? currency(Math.round(profitData.totalProfit / profitData.totalCount)) : '₹0'}

@@ -32,18 +32,18 @@ export default function Dashboard() {
   }
 
   const stats = [
-    { label: 'Active Subscriptions', value: data?.activeCount ?? 0, icon: Activity, color: 'text-success-600', bgColor: 'bg-success-50' },
-    { label: 'Expiring Soon', value: data?.expiringSoonCount ?? 0, icon: AlertTriangle, color: 'text-warning-600', bgColor: 'bg-warning-50' },
-    { label: 'Expired', value: data?.expiredCount ?? 0, icon: XCircle, color: 'text-danger-600', bgColor: 'bg-danger-50' },
-    { label: 'Reminders Due', value: data?.remindersDue ?? 0, icon: Bell, color: 'text-primary-600', bgColor: 'bg-primary-50' },
-    { label: 'Today Sales', value: currency(data?.todaySales ?? 0), icon: DollarSign, color: 'text-success-600', bgColor: 'bg-success-50' },
-    { label: 'Today Profit', value: currency(data?.todayProfit ?? 0), icon: TrendingUp, color: 'text-success-600', bgColor: 'bg-success-50' },
-    { label: 'Monthly Sales', value: currency(data?.monthlySales ?? 0), icon: Wallet, color: 'text-primary-600', bgColor: 'bg-primary-50' },
-    { label: 'Monthly Profit', value: currency(data?.monthlyProfit ?? 0), icon: TrendingUp, color: 'text-primary-600', bgColor: 'bg-primary-50' },
-    { label: 'Active Replacements', value: data?.replacementsActive ?? 0, icon: ArrowRightLeft, color: 'text-warning-600', bgColor: 'bg-warning-50' },
-    { label: 'Payment Pending', value: data?.paymentPending ?? 0, icon: Clock, color: 'text-danger-600', bgColor: 'bg-danger-50' },
-    { label: 'Paid Subscriptions', value: data?.paidCount ?? 0, icon: CheckCircle, color: 'text-success-600', bgColor: 'bg-success-50' },
-    { label: 'Renewals This Month', value: data?.renewalsThisMonth ?? 0, icon: RefreshCw, color: 'text-primary-600', bgColor: 'bg-primary-50' },
+    { label: 'Active Subscriptions', value: data?.activeCount ?? 0, icon: Activity, color: 'text-success-600', bgColor: 'bg-success-50', surfaceClass: 'from-white to-emerald-50/90 border-emerald-100/80' },
+    { label: 'Expiring Soon', value: data?.expiringSoonCount ?? 0, icon: AlertTriangle, color: 'text-warning-600', bgColor: 'bg-warning-50', surfaceClass: 'from-white to-amber-50/90 border-amber-100/80' },
+    { label: 'Expired', value: data?.expiredCount ?? 0, icon: XCircle, color: 'text-danger-600', bgColor: 'bg-danger-50', surfaceClass: 'from-white to-rose-50/90 border-rose-100/80' },
+    { label: 'Reminders Due', value: data?.remindersDue ?? 0, icon: Bell, color: 'text-primary-600', bgColor: 'bg-primary-50', surfaceClass: 'from-white to-blue-50/90 border-blue-100/80' },
+    { label: 'Today Sales', value: currency(data?.todaySales ?? 0), icon: DollarSign, color: 'text-success-600', bgColor: 'bg-success-50', surfaceClass: 'from-white to-lime-50/90 border-lime-100/80' },
+    { label: 'Today Profit', value: currency(data?.todayProfit ?? 0), icon: TrendingUp, color: 'text-success-600', bgColor: 'bg-success-50', surfaceClass: 'from-white to-teal-50/90 border-teal-100/80' },
+    { label: 'Monthly Sales', value: currency(data?.monthlySales ?? 0), icon: Wallet, color: 'text-primary-600', bgColor: 'bg-primary-50', surfaceClass: 'from-white to-indigo-50/90 border-indigo-100/80' },
+    { label: 'Monthly Profit', value: currency(data?.monthlyProfit ?? 0), icon: TrendingUp, color: 'text-primary-600', bgColor: 'bg-primary-50', surfaceClass: 'from-white to-violet-50/90 border-violet-100/80' },
+    { label: 'Active Replacements', value: data?.replacementsActive ?? 0, icon: ArrowRightLeft, color: 'text-warning-600', bgColor: 'bg-warning-50', surfaceClass: 'from-white to-orange-50/90 border-orange-100/80' },
+    { label: 'Payment Pending', value: data?.paymentPending ?? 0, icon: Clock, color: 'text-danger-600', bgColor: 'bg-danger-50', surfaceClass: 'from-white to-pink-50/90 border-pink-100/80' },
+    { label: 'Paid Subscriptions', value: data?.paidCount ?? 0, icon: CheckCircle, color: 'text-success-600', bgColor: 'bg-success-50', surfaceClass: 'from-white to-green-50/90 border-green-100/80' },
+    { label: 'Renewals This Month', value: data?.renewalsThisMonth ?? 0, icon: RefreshCw, color: 'text-primary-600', bgColor: 'bg-primary-50', surfaceClass: 'from-white to-cyan-50/90 border-cyan-100/80' },
   ];
 
   return (

@@ -14,6 +14,15 @@ import ErrorState from '../components/ui/ErrorState';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { currency } from '../utils/formatters';
 
+const categorySurfaces = [
+  { card: 'from-white to-primary-50/90 border-primary-100/80', pill: 'bg-primary-50 text-primary-700' },
+  { card: 'from-white to-emerald-50/90 border-emerald-100/80', pill: 'bg-emerald-50 text-emerald-700' },
+  { card: 'from-white to-amber-50/90 border-amber-100/80', pill: 'bg-amber-50 text-amber-700' },
+  { card: 'from-white to-rose-50/90 border-rose-100/80', pill: 'bg-rose-50 text-rose-700' },
+  { card: 'from-white to-cyan-50/90 border-cyan-100/80', pill: 'bg-cyan-50 text-cyan-700' },
+  { card: 'from-white to-violet-50/90 border-violet-100/80', pill: 'bg-violet-50 text-violet-700' },
+];
+
 const schema = z.object({
   name: z.string().min(1, 'Name required'),
   defaultPurchasePrice: z.coerce.number().min(0).optional().default(0),
@@ -77,12 +86,12 @@ export default function Categories() {
             </p>
           </div>
           <div className="flex gap-2">
-          <Button size="sm" variant="secondary" onClick={() => setShowArchived(!showArchived)}>
-            {showArchived ? 'Active' : 'Archived'}
-          </Button>
-          <Button size="sm" onClick={openCreate}>
-            <Plus className="h-4 w-4" /> Add
-          </Button>
+            <Button size="sm" variant="secondary" onClick={() => setShowArchived(!showArchived)}>
+              {showArchived ? 'Active' : 'Archived'}
+            </Button>
+            <Button size="sm" onClick={openCreate}>
+              <Plus className="h-4 w-4" /> Add
+            </Button>
           </div>
         </div>
       </div>
@@ -93,35 +102,38 @@ export default function Categories() {
         </EmptyState>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {categories.map((cat) => (
-            <Card key={cat._id} className="overflow-hidden">
-              <CardBody>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="inline-flex rounded-full bg-primary-50 px-2.5 py-1 text-[11px] font-semibold text-primary-700">
-                      Seller category
+          {categories.map((cat, index) => {
+            const palette = categorySurfaces[index % categorySurfaces.length];
+            return (
+              <Card key={cat._id} className={`overflow-hidden border bg-gradient-to-br ${palette.card}`}>
+                <CardBody>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${palette.pill}`}>
+                        Seller category
+                      </div>
+                      <h3 className="mt-3 text-lg font-semibold text-slate-900">{cat.name}</h3>
+                      {cat.description && <p className="mt-1 line-clamp-2 text-sm text-slate-500">{cat.description}</p>}
+                      <p className="mt-4 text-sm text-slate-600">
+                        Default Price: <span className="font-semibold text-slate-900">{currency(cat.defaultPurchasePrice)}</span>
+                      </p>
                     </div>
-                    <h3 className="mt-3 text-lg font-semibold text-slate-900">{cat.name}</h3>
-                    {cat.description && <p className="mt-1 line-clamp-2 text-sm text-slate-500">{cat.description}</p>}
-                    <p className="mt-4 text-sm text-slate-600">
-                      Default Price: <span className="font-semibold text-slate-900">{currency(cat.defaultPurchasePrice)}</span>
-                    </p>
+                    <div className="flex gap-1">
+                      <button onClick={() => openEdit(cat)} className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => archiveMut.mutate(cat._id)}
+                        className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                      >
+                        {cat.isArchived ? <RotateCcw className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-1">
-                    <button onClick={() => openEdit(cat)} className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
-                      <Edit2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => archiveMut.mutate(cat._id)}
-                      className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                    >
-                      {cat.isArchived ? <RotateCcw className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-          ))}
+                </CardBody>
+              </Card>
+            );
+          })}
         </div>
       )}
 

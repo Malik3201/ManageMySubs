@@ -81,12 +81,13 @@ export default function RenewSubscription() {
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
 
-      <div className="mb-6 flex items-center gap-3">
-        <div className="rounded-lg bg-primary-50 p-2">
+      <div className="mb-6 flex items-center gap-3 rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-white to-violet-50 p-5 shadow-sm">
+        <div className="rounded-2xl bg-primary-50 p-2.5 ring-1 ring-primary-100">
           <RefreshCw className="h-5 w-5 text-primary-600" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Renew Subscription</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary-600">Renew Cycle</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">Renew Subscription</h1>
           <p className="text-sm text-slate-500">{sub?.clientName || 'Client'} — {sub?.categoryId?.name}</p>
         </div>
       </div>
@@ -97,7 +98,7 @@ export default function RenewSubscription() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+        <div className="rounded-2xl border border-violet-100/80 bg-gradient-to-br from-white to-violet-50/80 p-5 space-y-4">
           <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Renewal Details</h2>
           <Input label="Purchase Date" type="date" {...register('purchaseDate')} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -108,7 +109,7 @@ export default function RenewSubscription() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+        <div className="rounded-2xl border border-emerald-100/80 bg-gradient-to-br from-white to-emerald-50/80 p-5 space-y-4">
           <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Pricing & Payment</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input label="Selling Price" type="number" step="0.01" {...register('sellingPrice')} />
@@ -121,7 +122,7 @@ export default function RenewSubscription() {
           <Input label="Payment Method" {...register('paymentMethod')} />
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
+        <div className="rounded-2xl border border-cyan-100/80 bg-gradient-to-br from-white to-cyan-50/80 p-5 space-y-4">
           <Textarea label="Notes" placeholder="Renewal notes..." {...register('notes')} />
         </div>
 
