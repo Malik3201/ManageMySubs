@@ -19,6 +19,11 @@ export default function Login() {
   const loginMutation = useLogin();
 
   const onSubmit = (data) => loginMutation.mutate(data);
+  const errorMessage =
+    loginMutation.error?.response?.data?.error?.message ||
+    (loginMutation.error?.message === 'Network Error'
+      ? 'Could not reach the API. Check Vercel env vars and backend CORS settings.'
+      : 'Login failed');
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-50 via-white to-primary-50 px-4">
@@ -49,7 +54,7 @@ export default function Login() {
 
           {loginMutation.isError && (
             <p className="text-sm text-danger-600">
-              {loginMutation.error?.response?.data?.error?.message || 'Login failed'}
+              {errorMessage}
             </p>
           )}
 

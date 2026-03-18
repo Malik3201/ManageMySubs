@@ -20,6 +20,11 @@ export default function Signup() {
   const registerMutation = useRegister();
 
   const onSubmit = (data) => registerMutation.mutate(data);
+  const errorMessage =
+    registerMutation.error?.response?.data?.error?.message ||
+    (registerMutation.error?.message === 'Network Error'
+      ? 'Could not reach the API. Check Vercel env vars and backend CORS settings.'
+      : 'Registration failed');
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-50 via-white to-primary-50 px-4">
@@ -56,7 +61,7 @@ export default function Signup() {
 
           {registerMutation.isError && (
             <p className="text-sm text-danger-600">
-              {registerMutation.error?.response?.data?.error?.message || 'Registration failed'}
+              {errorMessage}
             </p>
           )}
 
