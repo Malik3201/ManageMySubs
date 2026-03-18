@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const config = require('./config');
+const connectDB = require('./config/db');
 const routes = require('./routes');
 const errorHandler = require('./middlewares/errorHandler');
 
@@ -38,6 +39,16 @@ app.use(express.urlencoded({ extended: true }));
 if (config.nodeEnv !== 'test') {
   app.use(morgan('dev'));
 }
+
+// Ensure MongoDB is connected before protected route handlers run.
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.use('/api', routes);
 
