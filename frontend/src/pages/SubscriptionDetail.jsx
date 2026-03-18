@@ -95,9 +95,14 @@ export default function SubscriptionDetail() {
         <ArrowLeft className="h-4 w-4" /> Subscriptions
       </button>
 
-      <div className="mb-4 flex items-start justify-between gap-3">
+      <div className="mb-5 overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-950 via-primary-900 to-primary-700 p-5 text-white shadow-[0_30px_80px_-35px_rgba(67,56,202,0.7)]">
+        <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">{sub.clientName || 'Unnamed Client'}</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary-200">{catName}</p>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight">{sub.clientName || 'Unnamed Client'}</h1>
+          <p className="mt-2 max-w-xl text-sm text-primary-100/85">
+            Track lifecycle, payments, renewal continuity, replacement coverage, and client communication from one place.
+          </p>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <StatusBadge status={sub.computedStatus || sub.status} />
             <PaymentBadge status={sub.paymentStatus} />
@@ -105,6 +110,11 @@ export default function SubscriptionDetail() {
               <span className="text-xs text-primary-600 font-medium">Renewal #{sub.renewalCount}</span>
             )}
           </div>
+        </div>
+        <div className="rounded-2xl bg-white/10 px-4 py-3 text-right backdrop-blur">
+          <p className="text-xs uppercase tracking-[0.2em] text-primary-100/70">Current Profit</p>
+          <p className="mt-2 text-2xl font-bold">{currency(sub.profit)}</p>
+        </div>
         </div>
       </div>
 
@@ -159,9 +169,9 @@ export default function SubscriptionDetail() {
       </Card>
 
       {sub.tags?.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-1.5">
+        <div className="mb-4 flex flex-wrap gap-2">
           {sub.tags.map((t) => (
-            <span key={t} className="rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary-700">{t}</span>
+            <span key={t} className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-primary-700 ring-1 ring-primary-100">{t}</span>
           ))}
         </div>
       )}
@@ -188,7 +198,7 @@ export default function SubscriptionDetail() {
           <CardHeader><h2 className="text-sm font-semibold text-slate-700">Replacements</h2></CardHeader>
           <CardBody className="space-y-3">
             {replacements.map((r) => (
-              <div key={r._id} className="rounded-lg bg-slate-50 p-3 text-sm">
+              <div key={r._id} className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4 text-sm">
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-medium text-slate-800">{capitalize(r.replacementType)}</span>
                   <span className="text-xs text-slate-400">{formatDate(r.issueDate)}</span>

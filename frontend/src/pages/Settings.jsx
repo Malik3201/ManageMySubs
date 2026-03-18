@@ -7,8 +7,14 @@ export default function Settings() {
   const { user, logout } = useAuthStore();
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="text-xl font-bold text-slate-900 mb-6 sm:text-2xl">Settings</h1>
+    <div className="mx-auto max-w-2xl space-y-4">
+      <div className="rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-white to-primary-50 p-5 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary-600">Workspace</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Account and session settings</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Review your seller profile, current session details, and secure sign-out controls.
+        </p>
+      </div>
 
       <Card className="mb-4">
         <CardHeader>
@@ -18,13 +24,13 @@ export default function Settings() {
         </CardHeader>
         <CardBody className="space-y-3">
           <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-full bg-primary-100 flex items-center justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-primary-100 to-primary-50 ring-1 ring-primary-100">
               <span className="text-xl font-bold text-primary-700">
                 {user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </span>
             </div>
             <div>
-              <p className="font-semibold text-slate-900">{user?.name}</p>
+              <p className="text-lg font-semibold text-slate-900">{user?.name}</p>
               <p className="text-sm text-slate-500 flex items-center gap-1">
                 <Mail className="h-3.5 w-3.5" /> {user?.email}
               </p>

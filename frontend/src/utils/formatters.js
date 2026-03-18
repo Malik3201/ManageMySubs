@@ -10,21 +10,21 @@ export const capitalize = (str) => {
 
 export const statusColor = (status) => {
   const map = {
-    active: 'bg-success-50 text-success-700',
-    expiring_soon: 'bg-warning-50 text-warning-600',
-    expired: 'bg-danger-50 text-danger-700',
-    in_replacement: 'bg-primary-50 text-primary-700',
-    replacement_completed: 'bg-slate-100 text-slate-600',
-    cancelled: 'bg-slate-100 text-slate-500',
+    active: 'bg-success-50 text-success-700 ring-1 ring-success-500/15',
+    expiring_soon: 'bg-warning-50 text-warning-600 ring-1 ring-warning-500/20',
+    expired: 'bg-danger-50 text-danger-700 ring-1 ring-danger-500/15',
+    in_replacement: 'bg-primary-50 text-primary-700 ring-1 ring-primary-500/15',
+    replacement_completed: 'bg-slate-100 text-slate-600 ring-1 ring-slate-300/80',
+    cancelled: 'bg-slate-100 text-slate-500 ring-1 ring-slate-300/80',
   };
   return map[status] || 'bg-slate-100 text-slate-600';
 };
 
 export const paymentColor = (status) => {
   const map = {
-    paid: 'bg-success-50 text-success-700',
-    pending: 'bg-danger-50 text-danger-600',
-    partially_paid: 'bg-warning-50 text-warning-600',
+    paid: 'bg-success-50 text-success-700 ring-1 ring-success-500/15',
+    pending: 'bg-danger-50 text-danger-600 ring-1 ring-danger-500/15',
+    partially_paid: 'bg-warning-50 text-warning-600 ring-1 ring-warning-500/20',
   };
   return map[status] || 'bg-slate-100 text-slate-600';
 };

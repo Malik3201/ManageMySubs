@@ -66,16 +66,24 @@ export default function Categories() {
   }
 
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">Categories</h1>
-        <div className="flex gap-2">
+    <div className="space-y-4">
+      <div className="rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-white to-primary-50 p-5 shadow-sm">
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary-600">Catalog</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Organize your subscription categories.</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Keep default purchase prices ready so new sales can be entered faster on mobile and desktop.
+            </p>
+          </div>
+          <div className="flex gap-2">
           <Button size="sm" variant="secondary" onClick={() => setShowArchived(!showArchived)}>
             {showArchived ? 'Active' : 'Archived'}
           </Button>
           <Button size="sm" onClick={openCreate}>
             <Plus className="h-4 w-4" /> Add
           </Button>
+          </div>
         </div>
       </div>
 
@@ -86,14 +94,17 @@ export default function Categories() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {categories.map((cat) => (
-            <Card key={cat._id}>
+            <Card key={cat._id} className="overflow-hidden">
               <CardBody>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-semibold text-slate-900">{cat.name}</h3>
-                    {cat.description && <p className="mt-0.5 text-xs text-slate-500">{cat.description}</p>}
-                    <p className="mt-2 text-sm text-slate-600">
-                      Default Price: <span className="font-medium">{currency(cat.defaultPurchasePrice)}</span>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="inline-flex rounded-full bg-primary-50 px-2.5 py-1 text-[11px] font-semibold text-primary-700">
+                      Seller category
+                    </div>
+                    <h3 className="mt-3 text-lg font-semibold text-slate-900">{cat.name}</h3>
+                    {cat.description && <p className="mt-1 line-clamp-2 text-sm text-slate-500">{cat.description}</p>}
+                    <p className="mt-4 text-sm text-slate-600">
+                      Default Price: <span className="font-semibold text-slate-900">{currency(cat.defaultPurchasePrice)}</span>
                     </p>
                   </div>
                   <div className="flex gap-1">
