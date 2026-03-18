@@ -7,11 +7,28 @@ const routes = require('./routes');
 const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
+const allowedOrigins = new Set(config.frontendOrigins);
+
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.has(origin)) return true;
+
+  // Allow Vercel preview/production frontend deployments.
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
+
+  return false;
+};
 
 app.use(helmet());
 app.use(
   cors({
-    origin: true,
+    origin(origin, callback) {
+      if (isAllowedOrigin(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     credentials: true,
   })
 );
