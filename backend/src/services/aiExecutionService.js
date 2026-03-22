@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const ClientSubscription = require('../models/ClientSubscription');
 const ActivityLog = require('../models/ActivityLog');
 const subscriptionService = require('./subscriptionService');
@@ -96,11 +97,25 @@ async function findClientSubscriptions(userId, data) {
     .lean();
 }
 
+function formatContactLine(s) {
+  const name = (s.clientName || '').trim();
+  const phone = (s.clientPhone || '').trim();
+  const email = (s.clientEmail || '').trim();
+  if (!name && !phone && !email) {
+    return 'customer: (naam/number save nahi — subscription edit karke add karein)';
+  }
+  const parts = [];
+  if (name) parts.push(`naam: ${name}`);
+  if (phone) parts.push(`number: ${phone}`);
+  if (email) parts.push(`email: ${email}`);
+  return `customer: ${parts.join(' | ')}`;
+}
+
 function formatSubscriptionLine(s) {
   const cat = s.categoryId?.name || '—';
   const pay = s.paymentStatus || '—';
   const end = s.currentEndDate ? new Date(s.currentEndDate).toLocaleDateString() : '—';
-  return `• ${cat} — sale ₹${s.sellingPrice ?? 0} — payment ${pay} — ends ${end} — id ${s._id}`;
+  return `• ${cat} — ${formatContactLine(s)} — sale ₹${s.sellingPrice ?? 0} — payment ${pay} — ends ${end} — id ${s._id}`;
 }
 
 async function executeAction(userId, action, data) {
@@ -193,12 +208,34 @@ async function executeAction(userId, action, data) {
       };
     }
 
+    case 'lookup_subscription': {
+      const rawId = String(safe.subscriptionId || safe.id || '').trim();
+      if (!rawId || !mongoose.Types.ObjectId.isValid(rawId)) {
+        return {
+          executed: false,
+          message:
+            'Theek se subscription id chahiye (pehli reply mein "id ..." ke baad wala code).',
+        };
+      }
+      const s = await ClientSubscription.findOne({ _id: rawId, userId })
+        .populate('categoryId', 'name')
+        .lean();
+      if (!s) {
+        return { executed: true, message: 'Is id par aapki koi subscription nahi mili.' };
+      }
+      return {
+        executed: true,
+        message: `Detail:\n${formatSubscriptionLine(s)}`,
+      };
+    }
+
     case 'list_pending_payments': {
       const rows = await ClientSubscription.find({
         userId,
         isArchived: false,
         paymentStatus: { $in: ['pending', 'partially_paid'] },
       })
+        .select('clientName clientPhone clientEmail sellingPrice paymentStatus currentEndDate categoryId')
         .populate('categoryId', 'name')
         .sort({ currentEndDate: 1 })
         .limit(25)

@@ -37,7 +37,11 @@ Allowed actions:
 
 - "list_pending_payments" — List subs with pending/partial payment. data: {} usually.
 
+- "lookup_subscription" — User asks detail for ONE subscription (e.g. "client ka naam?", "is sale ka number?") after you listed rows with an "id ...". data: { "subscriptionId": "<24-char hex from previous list>" }. Always use this when the user refers to a specific line/id from your last message instead of guessing.
+
 - "none" — General chat / help / unclear. data: {}. Put full helpful answer in assistantMessage only.
+
+Important: The backend puts REAL customer naam/number/email on every list line when they exist in the database. If the line says "(naam/number save nahi)" the seller never entered contact on that subscription — do NOT say "system mein nahi mila" for that; say clearly "is sale par customer save nahi tha, app se edit karke add karein." If user asks follow-up about a listed row, prefer "lookup_subscription" with the id from that row.
 
 Context (seller's data — use for matching category names and disambiguation):
 ${contextBlock}
