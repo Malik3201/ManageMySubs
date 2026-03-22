@@ -65,6 +65,15 @@ ManageMySubs/
 
 ## Features
 
+### Frontend UI (SaaS-style)
+
+- **Primary navigation** — Dashboard, Customers (aggregated from subscriptions), Subscriptions, Sales (ledger table), Renewals (next 14 days)
+- **Workspace links** — Categories, Reminders, Reports, Settings (sidebar; “More” on mobile)
+- **Design system** — primary / secondary / accent palette, soft gradients, cards, `PageHeader`, `DataTable`, slide-over **Drawers** for create/edit/renew flows
+- **Dashboard** — hero metrics, sales sparkline (from reports API), ring progress indicators
+- **Toasts** — success/error feedback on mutations (subscriptions, categories, payments, reminders, replacements)
+- **AI assistant** — floating chat (Roman Urdu / English). Backend `POST /api/ai/chat` calls **Longcat** (OpenAI-compatible completions) using **`LONGCAT_API_KEY`**, **`LONGCAT_API_URL`**, and **`AI_MODEL`** in backend `.env` only.
+
 - **Multi-seller accounts** — each seller signs up and only sees their own data
 - **Subscription categories** — create and manage categories (Netflix, Prime Video, etc.)
 - **Client subscriptions** — full CRUD with duration types (monthly/yearly/custom)

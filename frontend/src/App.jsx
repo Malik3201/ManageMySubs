@@ -15,6 +15,9 @@ import RenewSubscription from './pages/RenewSubscription';
 import Reminders from './pages/Reminders';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import Customers from './pages/Customers';
+import Sales from './pages/Sales';
+import Renewals from './pages/Renewals';
 
 export default function App() {
   const initialize = useAuthStore((s) => s.initialize);
@@ -36,6 +39,9 @@ export default function App() {
         }
       >
         <Route index element={<Dashboard />} />
+        <Route path="customers" element={<Customers />} />
+        <Route path="sales" element={<Sales />} />
+        <Route path="renewals" element={<Renewals />} />
         <Route path="categories" element={<Categories />} />
         <Route path="subscriptions" element={<Subscriptions />} />
         <Route path="subscriptions/new" element={<CreateSubscription />} />

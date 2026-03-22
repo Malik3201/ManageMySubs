@@ -1,35 +1,41 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CreditCard, Bell, BarChart3, Layers } from 'lucide-react';
-import { clsx } from 'clsx';
+import {
+  LayoutDashboard,
+  Users,
+  CreditCard,
+  TrendingUp,
+  RefreshCw,
+} from 'lucide-react';
+import { cn } from '../../utils/cn';
 
 const items = [
-  { to: '/', icon: LayoutDashboard, label: 'Home' },
-  { to: '/categories', icon: Layers, label: 'Categories' },
+  { to: '/', icon: LayoutDashboard, label: 'Home', end: true },
+  { to: '/customers', icon: Users, label: 'People' },
   { to: '/subscriptions', icon: CreditCard, label: 'Subs' },
-  { to: '/reminders', icon: Bell, label: 'Reminders' },
-  { to: '/reports', icon: BarChart3, label: 'Reports' },
+  { to: '/sales', icon: TrendingUp, label: 'Sales' },
+  { to: '/renewals', icon: RefreshCw, label: 'Renew' },
 ];
 
 export default function MobileNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/70 bg-white/85 backdrop-blur-xl md:hidden">
-      <div className="mx-2 flex items-center justify-around py-2">
-        {items.map(({ to, icon: Icon, label }) => (
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/80 bg-white/90 shadow-[0_-8px_30px_-12px_rgba(15,23,42,0.15)] backdrop-blur-xl md:hidden">
+      <div className="mx-auto flex max-w-lg items-stretch justify-between gap-0.5 px-1 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        {items.map(({ to, icon: Icon, label, end }) => (
           <NavLink
             key={to}
             to={to}
-            end={to === '/'}
+            end={end}
             className={({ isActive }) =>
-              clsx(
-                'flex min-w-14 flex-col items-center gap-1 rounded-2xl px-2 py-1.5 text-[10px] font-medium transition-all duration-200',
+              cn(
+                'flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-2xl px-1 py-1.5 text-[10px] font-bold transition-all',
                 isActive
-                  ? 'bg-primary-50 text-primary-700 shadow-sm ring-1 ring-primary-100'
+                  ? 'bg-gradient-to-b from-primary-50 to-white text-primary-700 shadow-sm ring-1 ring-primary-100'
                   : 'text-slate-400'
               )
             }
           >
-            <Icon className="h-5 w-5" />
-            {label}
+            <Icon className="h-5 w-5" strokeWidth={2} />
+            <span className="truncate">{label}</span>
           </NavLink>
         ))}
       </div>

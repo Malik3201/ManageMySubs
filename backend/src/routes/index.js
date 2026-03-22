@@ -9,5 +9,6 @@ router.use('/subscriptions', auth, require('./subscriptions'));
 router.use('/reminders', auth, require('./reminders'));
 router.use('/dashboard', auth, require('./dashboard'));
 router.use('/reports', auth, require('./reports'));
+router.use('/ai', require('./ai'));
 
 module.exports = router;

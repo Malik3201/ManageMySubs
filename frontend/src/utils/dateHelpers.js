@@ -35,3 +35,28 @@ export const toInputDate = (date) => {
 };
 
 export const todayStr = () => toInputDate(new Date());
+
+/** Match backend subscription duration logic for UI previews */
+export const getTotalDays = (durationType, customDays = 0) => {
+  switch (durationType) {
+    case 'monthly':
+      return 30;
+    case 'yearly':
+      return 365;
+    case 'custom':
+      return Number(customDays) || 0;
+    default:
+      return 30;
+  }
+};
+
+export const calculateEndDateFromPurchase = (purchaseDateStr, durationType, customDays) => {
+  if (!purchaseDateStr) return null;
+  const start = new Date(purchaseDateStr);
+  if (Number.isNaN(start.getTime())) return null;
+  const total = getTotalDays(durationType, customDays);
+  if (durationType === 'custom' && total <= 0) return null;
+  const end = new Date(start);
+  end.setDate(end.getDate() + total);
+  return end;
+};

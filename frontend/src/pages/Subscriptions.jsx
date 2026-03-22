@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, CreditCard, SlidersHorizontal, X } from 'lucide-react';
-import { useSubscriptions } from '../hooks/useSubscriptions';
+import { Plus, SlidersHorizontal, X, LayoutGrid, Table2, CreditCard } from 'lucide-react';
+import { useSubscriptions, useToggleArchiveSubscription } from '../hooks/useSubscriptions';
 import { useCategories } from '../hooks/useCategories';
 import SubscriptionCard from '../components/subscription/SubscriptionCard';
+import SubscriptionDataTable from '../components/subscription/SubscriptionDataTable';
+import PageHeader from '../components/ui/PageHeader';
 import Button from '../components/ui/Button';
 import SearchBar from '../components/ui/SearchBar';
 import EmptyState from '../components/ui/EmptyState';
@@ -17,7 +19,7 @@ const quickFilters = [
   { label: 'Expiring 3d', key: 'expiringIn', value: '3' },
   { label: 'Expiring 7d', key: 'expiringIn', value: '7' },
   { label: 'Replacement', key: 'status', value: 'in_replacement' },
-  { label: 'Pending Payment', key: 'paymentStatus', value: 'pending' },
+  { label: 'Pending pay', key: 'paymentStatus', value: 'pending' },
   { label: 'Paid', key: 'paymentStatus', value: 'paid' },
   { label: 'Partial', key: 'paymentStatus', value: 'partially_paid' },
 ];
@@ -28,16 +30,22 @@ export default function Subscriptions() {
   const [filters, setFilters] = useState({});
   const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
+  const [view, setView] = useState('table');
 
-  const params = useMemo(() => ({
-    search: search || undefined,
-    page,
-    limit: 20,
-    ...filters,
-  }), [search, page, filters]);
+  const params = useMemo(
+    () => ({
+      search: search || undefined,
+      page,
+      limit: 20,
+      ...filters,
+    }),
+    [search, page, filters]
+  );
 
   const { data, isLoading, isError, refetch } = useSubscriptions(params);
   const { data: categories } = useCategories();
+  const archiveMut = useToggleArchiveSubscription();
+
   const subs = data?.data || [];
   const pagination = data?.pagination;
 
@@ -51,7 +59,11 @@ export default function Subscriptions() {
     setPage(1);
   };
 
-  const clearFilters = () => { setFilters({}); setSearch(''); setPage(1); };
+  const clearFilters = () => {
+    setFilters({});
+    setSearch('');
+    setPage(1);
+  };
   const activeFilterCount = Object.keys(filters).length;
 
   const applyQuickFilter = (key, value) => {
@@ -69,25 +81,57 @@ export default function Subscriptions() {
     setPage(1);
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-white to-primary-50 p-5 shadow-sm">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary-600">Subscription Sales</p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Manage every client cycle with speed.</h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Search by client name, email, or phone and jump into renewal or payment follow-up quickly.
-            </p>
-          </div>
-          <Button size="sm" onClick={() => navigate('/subscriptions/new')}>
-            <Plus className="h-4 w-4" /> New
-          </Button>
-        </div>
+  const onArchive = (id) => {
+    if (!window.confirm('Archive this subscription?')) return;
+    archiveMut.mutate(id);
+  };
 
+  return (
+    <div className="space-y-5">
+      <PageHeader
+        eyebrow="Operations"
+        title="Subscriptions"
+        description="Search, filter, and manage every client subscription in a compact SaaS layout."
+        actions={
+          <>
+            <div className="hidden items-center rounded-2xl border border-slate-200/80 bg-white/80 p-1 sm:flex">
+              <button
+                type="button"
+                onClick={() => setView('table')}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+                  view === 'table' ? 'bg-primary-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Table2 className="h-3.5 w-3.5" /> Table
+              </button>
+              <button
+                type="button"
+                onClick={() => setView('cards')}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+                  view === 'cards' ? 'bg-primary-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" /> Cards
+              </button>
+            </div>
+            <Button size="sm" onClick={() => navigate('/subscriptions/new')}>
+              <Plus className="h-4 w-4" /> New
+            </Button>
+          </>
+        }
+      />
+
+      <div className="rounded-[24px] border border-white/70 bg-white/70 p-4 shadow-[0_16px_40px_-28px_rgba(15,23,42,0.35)] backdrop-blur-md sm:p-5">
         <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex-1">
-            <SearchBar value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search client name, email, or phone..." />
+            <SearchBar
+              value={search}
+              onChange={(v) => {
+                setSearch(v);
+                setPage(1);
+              }}
+              placeholder="Search name, email, or phone…"
+            />
           </div>
           <Button
             size="sm"
@@ -107,10 +151,10 @@ export default function Subscriptions() {
                 key={`${filter.key}-${filter.value}`}
                 type="button"
                 onClick={() => applyQuickFilter(filter.key, filter.value)}
-                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                   active
-                    ? 'bg-primary-600 text-white shadow-sm'
-                    : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'
+                    ? 'bg-primary-600 text-white shadow-md shadow-primary-600/25'
+                    : 'bg-secondary-50 text-secondary-700 ring-1 ring-secondary-200/80 hover:bg-secondary-100/80'
                 }`}
               >
                 {filter.label}
@@ -121,11 +165,15 @@ export default function Subscriptions() {
       </div>
 
       {showFilters && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white to-secondary-50/50 p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-sm font-medium text-slate-700">Advanced filters</span>
+            <span className="text-sm font-semibold text-slate-800">Advanced filters</span>
             {activeFilterCount > 0 && (
-              <button onClick={clearFilters} className="flex items-center gap-1 text-xs text-primary-600 hover:underline">
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="flex items-center gap-1 text-xs font-medium text-primary-600 hover:underline"
+              >
                 <X className="h-3 w-3" /> Clear all
               </button>
             )}
@@ -134,48 +182,54 @@ export default function Subscriptions() {
             <select
               value={filters.status || ''}
               onChange={(e) => updateFilter('status', e.target.value)}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm"
             >
-              <option value="">All Statuses</option>
+              <option value="">All statuses</option>
               {SUBSCRIPTION_STATUSES.map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
               ))}
             </select>
             <select
               value={filters.paymentStatus || ''}
               onChange={(e) => updateFilter('paymentStatus', e.target.value)}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm"
             >
-              <option value="">All Payments</option>
+              <option value="">All payments</option>
               {PAYMENT_STATUSES.map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
               ))}
             </select>
             <select
               value={filters.categoryId || ''}
               onChange={(e) => updateFilter('categoryId', e.target.value)}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm"
             >
-              <option value="">All Categories</option>
+              <option value="">All categories</option>
               {categories?.map((c) => (
-                <option key={c._id} value={c._id}>{c.name}</option>
+                <option key={c._id} value={c._id}>
+                  {c.name}
+                </option>
               ))}
             </select>
             <select
               value={filters.expiringIn || ''}
               onChange={(e) => updateFilter('expiringIn', e.target.value)}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm"
             >
-              <option value="">Expiry Window</option>
+              <option value="">Expiry window</option>
               <option value="3">Expiring in 3 days</option>
               <option value="7">Expiring in 7 days</option>
             </select>
             <select
               value={filters.archived || ''}
               onChange={(e) => updateFilter('archived', e.target.value)}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm"
             >
-              <option value="">Active Only</option>
+              <option value="">Active only</option>
               <option value="true">Archived</option>
             </select>
           </div>
@@ -185,29 +239,39 @@ export default function Subscriptions() {
       {isLoading ? (
         <LoadingSpinner size="lg" className="py-20" />
       ) : isError ? (
-        <ErrorState
-          title="Subscriptions unavailable"
-          description="We couldn't load the subscription list."
-          onRetry={refetch}
-        />
+        <ErrorState title="Subscriptions unavailable" description="We couldn't load the list." onRetry={refetch} />
       ) : !subs.length ? (
-        <EmptyState icon={CreditCard} title="No subscriptions found" description="Create your first subscription or adjust your filters.">
+        <EmptyState
+          icon={CreditCard}
+          title="No subscriptions found"
+          description="Create your first subscription or adjust filters."
+        >
           <Button onClick={() => navigate('/subscriptions/new')}>
-            <Plus className="h-4 w-4" /> Create Subscription
+            <Plus className="h-4 w-4" /> Create subscription
           </Button>
         </EmptyState>
       ) : (
         <>
-          <div className="flex items-center justify-between px-1">
-            <p className="text-sm font-medium text-slate-700">{pagination?.total ?? subs.length} subscriptions</p>
-            <p className="text-xs text-slate-400">Tap any card for renewals, replacement, payment, and history.</p>
+          <div className="flex flex-col gap-2 px-1 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-semibold text-slate-800">
+              {pagination?.total ?? subs.length} subscriptions
+            </p>
+            <p className="text-xs text-slate-500">Row click opens details · Edit and archive from the actions column.</p>
           </div>
 
-          <div className="space-y-3">
-            {subs.map((s) => (
-              <SubscriptionCard key={s._id} subscription={s} />
-            ))}
-          </div>
+          {view === 'table' ? (
+            <SubscriptionDataTable
+              rows={subs}
+              onArchive={onArchive}
+              archivingId={archiveMut.isPending ? archiveMut.variables : undefined}
+            />
+          ) : (
+            <div className="space-y-3">
+              {subs.map((s) => (
+                <SubscriptionCard key={s._id} subscription={s} />
+              ))}
+            </div>
+          )}
 
           {pagination && pagination.pages > 1 && (
             <div className="mt-4 flex items-center justify-center gap-2">
