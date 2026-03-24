@@ -28,8 +28,16 @@ const schema = z.object({
   amountReceived: z.coerce.number().min(0).optional(),
   notes: z.string().optional(),
   tags: z.array(z.string()).optional(),
-  status: z.enum(['cancelled']).optional(),
+  lifecycleOverride: z.enum(['none', 'active', 'expiring', 'expired', 'replacement']).optional().default('none'),
 });
+
+const LIFECYCLE_OVERRIDE_OPTIONS = [
+  { value: 'none', label: 'Keep current status' },
+  { value: 'active', label: 'Mark Active' },
+  { value: 'expiring', label: 'Mark Expiring' },
+  { value: 'expired', label: 'Mark Expired' },
+  { value: 'replacement', label: 'Mark Replacement' },
+];
 
 export default function EditSubscription() {
   const { id } = useParams();
@@ -63,7 +71,7 @@ export default function EditSubscription() {
         amountReceived: sub.amountReceived,
         notes: sub.notes,
         tags: sub.tags || [],
-        status: sub.status === 'cancelled' ? 'cancelled' : undefined,
+        lifecycleOverride: 'none',
       });
     }
   }, [sub, reset]);
@@ -76,7 +84,23 @@ export default function EditSubscription() {
   const handleClose = () => navigate(`/subscriptions/${id}`);
 
   const onSubmit = (data) => {
-    updateMut.mutate({ id, data }, { onSuccess: () => handleClose() });
+    const payload = {
+      ...data,
+      lifecycleOverride: data.lifecycleOverride || 'none',
+    };
+    updateMut.mutate(
+      { id, data: payload },
+      {
+        onSuccess: () => handleClose(),
+        onError: (err) => {
+          console.error('[EditSubscription] submit failed', {
+            subscriptionId: id,
+            payload,
+            error: err?.response?.data || err?.message,
+          });
+        },
+      }
+    );
   };
 
   if (isLoading) return <LoadingSpinner size="lg" className="py-20" />;
@@ -108,7 +132,13 @@ export default function EditSubscription() {
         </div>
       }
     >
-      <form id="edit-sub-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form
+        id="edit-sub-form"
+        onSubmit={handleSubmit(onSubmit, (formErrors) => {
+          console.error('[EditSubscription] validation blocked submit', formErrors);
+        })}
+        className="space-y-5"
+      >
         <div className="rounded-2xl border border-cyan-100/80 bg-gradient-to-br from-white to-cyan-50/70 p-4 sm:p-5 space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Customer</h2>
           <Input label="Client name" error={errors.clientName?.message} {...register('clientName')} />
@@ -146,9 +176,8 @@ export default function EditSubscription() {
           </div>
           <Select
             label="Lifecycle override"
-            options={[{ value: 'cancelled', label: 'Cancel subscription' }]}
-            placeholder="Keep current status"
-            {...register('status')}
+            options={LIFECYCLE_OVERRIDE_OPTIONS}
+            {...register('lifecycleOverride')}
           />
           <Textarea label="Notes" {...register('notes')} />
           <div>

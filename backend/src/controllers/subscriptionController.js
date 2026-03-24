@@ -33,6 +33,13 @@ const update = async (req, res, next) => {
     const sub = await subscriptionService.update(req.userId, req.params.id, req.validatedBody);
     ApiResponse.success(res, sub, 'Subscription updated');
   } catch (err) {
+    console.error('[subscription.update] failed', {
+      userId: req.userId?.toString?.(),
+      subscriptionId: req.params?.id,
+      payload: req.validatedBody,
+      error: err?.message,
+      code: err?.code,
+    });
     next(err);
   }
 };

@@ -229,8 +229,17 @@ const update = async (userId, id, data) => {
     sub.vendorId = byName?._id || null;
   }
 
-  if (data.status === 'cancelled') {
-    sub.status = 'cancelled';
+  if (data.lifecycleOverride && data.lifecycleOverride !== 'none') {
+    const overrideMap = {
+      active: 'active',
+      expiring: 'expiring_soon',
+      expired: 'expired',
+      replacement: 'in_replacement',
+    };
+    const nextStatus = overrideMap[data.lifecycleOverride];
+    if (nextStatus) {
+      sub.status = nextStatus;
+    }
   }
 
   if (
