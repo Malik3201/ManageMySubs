@@ -10,6 +10,7 @@ import Button from '../components/ui/Button';
 import Drawer from '../components/ui/Drawer';
 import { useCategories } from '../hooks/useCategories';
 import { useCreateSubscription } from '../hooks/useSubscriptions';
+import { useVendors } from '../hooks/useVendors';
 import ErrorState from '../components/ui/ErrorState';
 import EmptyState from '../components/ui/EmptyState';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
@@ -19,6 +20,8 @@ import { currency } from '../utils/formatters';
 
 const schema = z.object({
   categoryId: z.string().min(1, 'Category required'),
+  vendorId: z.string().optional().default(''),
+  vendorName: z.string().optional().default(''),
   clientName: z.string().optional().default(''),
   clientPhone: z.string().optional().default(''),
   clientEmail: z.string().email('Invalid email').optional().or(z.literal('')).default(''),
@@ -40,6 +43,7 @@ const schema = z.object({
 export default function CreateSubscription() {
   const navigate = useNavigate();
   const { data: categories, isLoading, isError, refetch } = useCategories();
+  const { data: vendors } = useVendors();
   const createMut = useCreateSubscription();
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({
@@ -88,6 +92,7 @@ export default function CreateSubscription() {
   };
 
   const catOptions = (categories || []).map((c) => ({ value: c._id, label: c.name }));
+  const vendorOptions = (vendors || []).map((v) => ({ value: v._id, label: v.name }));
 
   if (isLoading) return <LoadingSpinner size="lg" className="py-20" />;
   if (isError) {
@@ -149,6 +154,10 @@ export default function CreateSubscription() {
             )}
           </div>
           <Input label="Purchase date" type="date" {...register('purchaseDate')} />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Select label="Vendor (optional)" options={vendorOptions} placeholder="Select existing vendor" {...register('vendorId')} />
+            <Input label="Or new vendor name" placeholder="e.g. Ali" {...register('vendorName')} />
+          </div>
         </div>
 
         <div className="rounded-2xl border border-cyan-100/80 bg-gradient-to-br from-white to-cyan-50/70 p-4 sm:p-5 space-y-3">

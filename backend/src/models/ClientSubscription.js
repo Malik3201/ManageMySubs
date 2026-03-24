@@ -13,6 +13,11 @@ const clientSubscriptionSchema = new mongoose.Schema(
       ref: 'SubscriptionCategory',
       required: true,
     },
+    vendorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Vendor',
+      default: null,
+    },
     clientName: { type: String, trim: true, default: '' },
     clientPhone: { type: String, trim: true, default: '' },
     clientEmail: { type: String, trim: true, default: '' },
@@ -65,6 +70,7 @@ const clientSubscriptionSchema = new mongoose.Schema(
 clientSubscriptionSchema.index({ userId: 1, status: 1 });
 clientSubscriptionSchema.index({ userId: 1, currentEndDate: 1 });
 clientSubscriptionSchema.index({ userId: 1, paymentStatus: 1 });
+clientSubscriptionSchema.index({ userId: 1, vendorId: 1 });
 clientSubscriptionSchema.index(
   { clientName: 'text', clientEmail: 'text', clientPhone: 'text' }
 );

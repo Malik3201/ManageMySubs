@@ -11,6 +11,7 @@ import Drawer from '../components/ui/Drawer';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import ErrorState from '../components/ui/ErrorState';
 import { useSubscription, useUpdateSubscription } from '../hooks/useSubscriptions';
+import { useVendors } from '../hooks/useVendors';
 import { PAYMENT_STATUSES, TAG_OPTIONS } from '../utils/constants';
 import { currency } from '../utils/formatters';
 
@@ -18,6 +19,8 @@ const schema = z.object({
   clientName: z.string().optional(),
   clientPhone: z.string().optional(),
   clientEmail: z.string().email().optional().or(z.literal('')),
+  vendorId: z.string().nullable().optional(),
+  vendorName: z.string().optional(),
   sellingPrice: z.coerce.number().min(0).optional(),
   purchasePrice: z.coerce.number().min(0).optional(),
   paymentStatus: z.enum(['pending', 'paid', 'partially_paid']).optional(),
@@ -32,6 +35,7 @@ export default function EditSubscription() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: sub, isLoading, isError, refetch } = useSubscription(id);
+  const { data: vendors } = useVendors();
   const updateMut = useUpdateSubscription();
 
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
@@ -42,6 +46,7 @@ export default function EditSubscription() {
   const sellingPrice = watch('sellingPrice');
   const purchasePrice = watch('purchasePrice');
   const profitPreview = (Number(sellingPrice) || 0) - (Number(purchasePrice) || 0);
+  const vendorOptions = (vendors || []).map((v) => ({ value: v._id, label: v.name }));
 
   useEffect(() => {
     if (sub) {
@@ -49,6 +54,8 @@ export default function EditSubscription() {
         clientName: sub.clientName,
         clientPhone: sub.clientPhone,
         clientEmail: sub.clientEmail,
+        vendorId: sub.vendorId?._id || '',
+        vendorName: '',
         sellingPrice: sub.sellingPrice,
         purchasePrice: sub.purchasePrice,
         paymentStatus: sub.paymentStatus,
@@ -108,6 +115,10 @@ export default function EditSubscription() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input label="Phone" {...register('clientPhone')} />
             <Input label="Email" type="email" error={errors.clientEmail?.message} {...register('clientEmail')} />
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Select label="Vendor (optional)" options={vendorOptions} placeholder="Select vendor" {...register('vendorId')} />
+            <Input label="Or new vendor name" placeholder="e.g. Ali" {...register('vendorName')} />
           </div>
         </div>
 

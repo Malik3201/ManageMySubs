@@ -3,6 +3,7 @@ const SubscriptionCategory = require('../models/SubscriptionCategory');
 const ActivityLog = require('../models/ActivityLog');
 const ApiError = require('../utils/apiError');
 const { resolvePaymentFields } = require('../utils/paymentHelpers');
+const { resolveVendor, recalcVendorTotals } = require('./vendorAccountingService');
 const {
   getTotalDays,
   calculateEndDate,
@@ -127,6 +128,7 @@ const list = async (userId, query = {}) => {
   const [docs, total] = await Promise.all([
     ClientSubscription.find(filter)
       .populate('categoryId', 'name')
+      .populate('vendorId', 'name totalPayable totalPaid balance')
       .sort(sort)
       .skip(skip)
       .limit(limit)
@@ -141,6 +143,7 @@ const list = async (userId, query = {}) => {
 const getById = async (userId, id) => {
   const sub = await ClientSubscription.findOne({ _id: id, userId })
     .populate('categoryId', 'name defaultPurchasePrice')
+    .populate('vendorId', 'name totalPayable totalPaid balance')
     .populate('parentSubscriptionId', 'clientName purchaseDate');
   if (!sub) throw ApiError.notFound('Subscription not found');
   return enrichSubscription(sub);
@@ -162,10 +165,15 @@ const create = async (userId, data) => {
     paymentStatus: data.paymentStatus || 'pending',
     amountReceived: data.amountReceived,
   });
+  const vendor = await resolveVendor(userId, {
+    vendorId: data.vendorId,
+    vendorName: data.vendorName,
+  });
 
   const sub = await ClientSubscription.create({
     userId,
     categoryId: data.categoryId,
+    vendorId: vendor?._id || null,
     clientName: data.clientName,
     clientPhone: data.clientPhone,
     clientEmail: data.clientEmail,
@@ -192,6 +200,9 @@ const create = async (userId, data) => {
     actionType: 'created',
     meta: { durationType: data.durationType, totalDays, sellingPrice: sub.sellingPrice },
   });
+  if (vendor?._id) {
+    await recalcVendorTotals(userId, vendor._id);
+  }
 
   return enrichSubscription(sub);
 };
@@ -204,10 +215,19 @@ const update = async (userId, id, data) => {
     'clientName', 'clientPhone', 'clientEmail', 'sellingPrice', 'purchasePrice',
     'paymentStatus', 'paymentMethod', 'amountReceived', 'notes', 'tags',
   ];
+  const prevVendorId = sub.vendorId ? String(sub.vendorId) : null;
 
   allowed.forEach((key) => {
     if (data[key] !== undefined) sub[key] = data[key];
   });
+  if (data.vendorId !== undefined) {
+    const byId = await resolveVendor(userId, { vendorId: data.vendorId });
+    sub.vendorId = byId?._id || null;
+  }
+  if (data.vendorName !== undefined) {
+    const byName = await resolveVendor(userId, { vendorName: data.vendorName });
+    sub.vendorId = byName?._id || null;
+  }
 
   if (data.status === 'cancelled') {
     sub.status = 'cancelled';
@@ -238,6 +258,13 @@ const update = async (userId, id, data) => {
     actionType: 'updated',
     meta: { updatedFields: Object.keys(data) },
   });
+  const nextVendorId = sub.vendorId ? String(sub.vendorId) : null;
+  if (prevVendorId) {
+    await recalcVendorTotals(userId, prevVendorId);
+  }
+  if (nextVendorId && nextVendorId !== prevVendorId) {
+    await recalcVendorTotals(userId, nextVendorId);
+  }
 
   return enrichSubscription(sub);
 };
@@ -275,10 +302,15 @@ const renew = async (userId, id, data) => {
     paymentStatus: data.paymentStatus || 'pending',
     amountReceived: data.amountReceived,
   });
+  const vendor = await resolveVendor(userId, {
+    vendorId: data.vendorId || original.vendorId,
+    vendorName: data.vendorName,
+  });
 
   const renewed = await ClientSubscription.create({
     userId,
     categoryId: original.categoryId._id,
+    vendorId: vendor?._id || original.vendorId || null,
     clientName: original.clientName,
     clientPhone: original.clientPhone,
     clientEmail: original.clientEmail,
@@ -319,6 +351,9 @@ const renew = async (userId, id, data) => {
     actionType: 'created',
     meta: { renewedFrom: original._id, renewalCount: renewed.renewalCount },
   });
+  if (renewed.vendorId) {
+    await recalcVendorTotals(userId, renewed.vendorId);
+  }
 
   return enrichSubscription(renewed);
 };

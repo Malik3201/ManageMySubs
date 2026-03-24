@@ -18,6 +18,8 @@ import Settings from './pages/Settings';
 import Customers from './pages/Customers';
 import Sales from './pages/Sales';
 import Renewals from './pages/Renewals';
+import Vendors from './pages/Vendors';
+import VendorDetail from './pages/VendorDetail';
 
 export default function App() {
   const initialize = useAuthStore((s) => s.initialize);
@@ -42,6 +44,8 @@ export default function App() {
         <Route path="customers" element={<Customers />} />
         <Route path="sales" element={<Sales />} />
         <Route path="renewals" element={<Renewals />} />
+        <Route path="vendors" element={<Vendors />} />
+        <Route path="vendors/:id" element={<VendorDetail />} />
         <Route path="categories" element={<Categories />} />
         <Route path="subscriptions" element={<Subscriptions />} />
         <Route path="subscriptions/new" element={<CreateSubscription />} />

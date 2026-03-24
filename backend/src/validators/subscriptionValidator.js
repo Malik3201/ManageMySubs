@@ -3,6 +3,8 @@ const { z } = require('zod');
 const createSubscriptionSchema = z
   .object({
     categoryId: z.string().min(1, 'Category is required'),
+    vendorId: z.string().optional(),
+    vendorName: z.string().max(120).optional().default(''),
     clientName: z.string().max(200).optional().default(''),
     clientPhone: z.string().max(30).optional().default(''),
     clientEmail: z.string().email().optional().or(z.literal('')).default(''),
@@ -39,6 +41,8 @@ const updateSubscriptionSchema = z.object({
   clientName: z.string().max(200).optional(),
   clientPhone: z.string().max(30).optional(),
   clientEmail: z.string().email().optional().or(z.literal('')),
+  vendorId: z.string().nullable().optional(),
+  vendorName: z.string().max(120).optional(),
   sellingPrice: z.number().min(0).optional(),
   purchasePrice: z.number().min(0).optional(),
   paymentStatus: z.enum(['pending', 'paid', 'partially_paid']).optional(),
@@ -60,6 +64,8 @@ const updateSubscriptionSchema = z.object({
 const renewSubscriptionSchema = z
   .object({
     purchaseDate: z.string().optional(),
+    vendorId: z.string().optional(),
+    vendorName: z.string().max(120).optional().default(''),
     sellingPrice: z.number().min(0).optional().default(0),
     purchasePrice: z.number().min(0).optional().default(0),
     durationType: z.enum(['monthly', 'yearly', 'custom']),

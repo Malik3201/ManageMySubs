@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Edit, RefreshCw, ArrowRightLeft, Archive, RotateCcw,
@@ -36,6 +36,27 @@ export default function SubscriptionDetail() {
   const [replaceForm, setReplaceForm] = useState({
     reason: '', usedDaysBeforeDeactivation: 0, replacementType: 'partial_paid', paidExtraDays: 0, notes: '',
   });
+  const [animatedRemaining, setAnimatedRemaining] = useState(0);
+
+  useEffect(() => {
+    const target = Math.max(0, Number(sub?.remainingDays || 0));
+    setAnimatedRemaining((current) => {
+      if (current === target) return current;
+      return current;
+    });
+    const interval = setInterval(() => {
+      setAnimatedRemaining((current) => {
+        if (current === target) {
+          clearInterval(interval);
+          return current;
+        }
+        const diff = target - current;
+        const step = Math.max(1, Math.floor(Math.abs(diff) / 4));
+        return current + Math.sign(diff) * step;
+      });
+    }, 90);
+    return () => clearInterval(interval);
+  }, [sub?.remainingDays]);
 
   if (isLoading) return <LoadingSpinner size="lg" className="py-20" />;
   if (isError || !sub) {
@@ -52,6 +73,17 @@ export default function SubscriptionDetail() {
 
   const handleMarkPaid = () => {
     paymentMut.mutate({ subscriptionId: id, data: { paymentStatus: 'paid' } });
+  };
+
+  const handleArchiveToggle = () => {
+    const isRestore = sub.isArchived;
+    const confirmed = window.confirm(
+      isRestore
+        ? 'Restore this subscription to active list?'
+        : 'Archive this subscription? You can restore it later from archived filters.'
+    );
+    if (!confirmed) return;
+    archiveMut.mutate(id);
   };
 
   const handleReplacement = () => {
@@ -71,26 +103,61 @@ export default function SubscriptionDetail() {
     replacementEndDate: formatDate(sub.currentEndDate),
   };
 
-  const info = [
-    { label: 'Category', value: catName, icon: Tag },
-    { label: 'Duration', value: `${capitalize(sub.durationType)} (${sub.totalDays} days)`, icon: Calendar },
-    { label: 'Start Date', value: formatDate(sub.startDate), icon: Calendar },
-    { label: 'End Date', value: formatDate(sub.currentEndDate), icon: Calendar },
-    { label: 'Elapsed', value: `${sub.elapsedDays ?? 0} days`, icon: Clock },
-    { label: 'Remaining', value: `${sub.remainingDays ?? 0} days`, icon: Clock },
-    { label: 'Selling Price', value: currency(sub.sellingPrice), icon: DollarSign },
-    { label: 'Purchase Price', value: currency(sub.purchasePrice), icon: DollarSign },
-    { label: 'Profit', value: currency(sub.profit), icon: DollarSign },
-    { label: 'Amount Received', value: currency(sub.amountReceived), icon: CreditCard },
-    { label: 'Amount Remaining', value: currency(sub.amountRemaining), icon: CreditCard },
-    { label: 'Payment Method', value: sub.paymentMethod || '—', icon: CreditCard },
-  ];
   const replacementDaysGranted = Math.max(0, (sub.totalDays || 0) - Number(replaceForm.usedDaysBeforeDeactivation || 0));
   const replacementCoverage = replacementDaysGranted + (replaceForm.replacementType === 'partial_paid' ? Number(replaceForm.paidExtraDays || 0) : 0);
   const canReplace = ['active', 'expiring_soon'].includes(sub.computedStatus || sub.status);
+  const remainingDays = Math.max(0, Number(sub.remainingDays || 0));
+  const elapsedDays = Math.max(0, Number(sub.elapsedDays || 0));
+  const totalDays = Math.max(1, Number(sub.totalDays || 1));
+  const timelineProgress = Math.min(100, Math.round((elapsedDays / totalDays) * 100));
+  const countdownTone =
+    remainingDays < 3
+      ? 'from-rose-500 to-danger-600 text-white shadow-[0_10px_28px_-12px_rgba(244,63,94,0.55)]'
+      : remainingDays < 10
+        ? 'from-amber-400 to-warning-600 text-white shadow-[0_10px_28px_-12px_rgba(245,158,11,0.5)]'
+        : 'from-emerald-500 to-success-600 text-white shadow-[0_10px_28px_-12px_rgba(16,185,129,0.55)]';
+  const detailMetrics = [
+    {
+      label: 'Selling Price',
+      value: currency(sub.sellingPrice),
+      icon: DollarSign,
+      surface: 'from-emerald-50 to-white border-emerald-100',
+      accent: 'text-emerald-700',
+    },
+    {
+      label: 'Cost Price',
+      value: currency(sub.purchasePrice),
+      icon: CreditCard,
+      surface: 'from-blue-50 to-white border-blue-100',
+      accent: 'text-blue-700',
+    },
+    {
+      label: 'Profit',
+      value: currency(sub.profit),
+      icon: DollarSign,
+      surface: 'from-violet-50 to-white border-violet-100',
+      accent: 'text-violet-700',
+    },
+    {
+      label: 'Payment Status',
+      value: capitalize(sub.paymentStatus),
+      icon: CheckCircle,
+      surface: sub.paymentStatus === 'paid' ? 'from-emerald-50 to-white border-emerald-100' : 'from-rose-50 to-white border-rose-100',
+      accent: sub.paymentStatus === 'paid' ? 'text-emerald-700' : 'text-rose-700',
+      badge: true,
+    },
+  ];
+  const detailInfo = [
+    { label: 'Category', value: catName, icon: Tag },
+    { label: 'Vendor', value: sub.vendorId?.name || '—', icon: User },
+    { label: 'Duration', value: `${capitalize(sub.durationType)} (${sub.totalDays} days)`, icon: Calendar },
+    { label: 'Payment Method', value: sub.paymentMethod || '—', icon: CreditCard },
+    { label: 'Amount Received', value: currency(sub.amountReceived), icon: DollarSign },
+    { label: 'Amount Remaining', value: currency(sub.amountRemaining), icon: Clock },
+  ];
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-6xl space-y-5">
       <button onClick={() => navigate('/subscriptions')} className="mb-4 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
         <ArrowLeft className="h-4 w-4" /> Subscriptions
       </button>
@@ -118,117 +185,199 @@ export default function SubscriptionDetail() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-5">
-        <Button size="sm" variant="secondary" onClick={() => navigate(`/subscriptions/${id}/edit`)}>
-          <Edit className="h-3.5 w-3.5" /> Edit
-        </Button>
-        <Button size="sm" variant="secondary" onClick={() => navigate(`/subscriptions/${id}/renew`)}>
-          <RefreshCw className="h-3.5 w-3.5" /> Renew
-        </Button>
-        <Button size="sm" variant="secondary" onClick={() => setReplaceOpen(true)} disabled={!canReplace}>
-          <ArrowRightLeft className="h-3.5 w-3.5" /> Replace
-        </Button>
-        {sub.paymentStatus !== 'paid' && (
-          <Button size="sm" variant="success" onClick={handleMarkPaid} loading={paymentMut.isPending}>
-            <CheckCircle className="h-3.5 w-3.5" /> Mark Paid
-          </Button>
-        )}
-        <Button size="sm" variant="ghost" onClick={() => archiveMut.mutate(id)}>
-          {sub.isArchived ? <RotateCcw className="h-3.5 w-3.5" /> : <Archive className="h-3.5 w-3.5" />}
-          {sub.isArchived ? 'Restore' : 'Archive'}
-        </Button>
-      </div>
-
-      {sub.clientPhone || sub.clientEmail ? (
-        <Card className="mb-4">
-          <CardBody className="flex flex-wrap gap-4 text-sm">
-            {sub.clientPhone && (
-              <span className="flex items-center gap-1.5 text-slate-600"><Phone className="h-4 w-4 text-slate-400" />{sub.clientPhone}</span>
-            )}
-            {sub.clientEmail && (
-              <span className="flex items-center gap-1.5 text-slate-600"><Mail className="h-4 w-4 text-slate-400" />{sub.clientEmail}</span>
-            )}
-          </CardBody>
-        </Card>
-      ) : null}
-
-      <Card className="mb-4">
-        <CardHeader><h2 className="text-sm font-semibold text-slate-700">Subscription Details</h2></CardHeader>
-        <CardBody>
-          <dl className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
-            {info.map(({ label, value, icon: Icon }) => (
-              <div key={label}>
-                <dt className="flex items-center gap-1 text-xs text-slate-400 mb-0.5">
-                  <Icon className="h-3 w-3" /> {label}
-                </dt>
-                <dd className="text-sm font-medium text-slate-800">{value}</dd>
-              </div>
-            ))}
-          </dl>
-        </CardBody>
-      </Card>
-
-      {sub.tags?.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-2">
-          {sub.tags.map((t) => (
-            <span key={t} className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-primary-700 ring-1 ring-primary-100">{t}</span>
-          ))}
-        </div>
-      )}
-
-      {sub.notes && (
-        <Card className="mb-4">
-          <CardBody>
-            <div className="flex items-start gap-2">
-              <FileText className="h-4 w-4 text-slate-400 mt-0.5" />
-              <p className="text-sm text-slate-600">{sub.notes}</p>
-            </div>
-          </CardBody>
-        </Card>
-      )}
-
-      {replacementsError ? (
-        <Card className="mb-4">
-          <CardBody>
-            <p className="text-sm text-danger-600">Replacement history could not be loaded right now.</p>
-          </CardBody>
-        </Card>
-      ) : replacements?.length > 0 && (
-        <Card className="mb-4">
-          <CardHeader><h2 className="text-sm font-semibold text-slate-700">Replacements</h2></CardHeader>
-          <CardBody className="space-y-3">
-            {replacements.map((r) => (
-              <div key={r._id} className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4 text-sm">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-medium text-slate-800">{capitalize(r.replacementType)}</span>
-                  <span className="text-xs text-slate-400">{formatDate(r.issueDate)}</span>
+      <div className="grid gap-4 xl:grid-cols-12">
+        <div className="space-y-4 xl:col-span-8">
+          <Card>
+            <CardHeader className="rounded-t-2xl border-b border-white/60 bg-gradient-to-br from-white via-white to-primary-50/70">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-base font-semibold text-slate-800">Subscription Details</h2>
+                  <p className="text-xs text-slate-500">Visual lifecycle, key finance metrics, and quick management actions.</p>
                 </div>
-                <p className="text-xs text-slate-500">
-                  Used: {r.usedDaysBeforeDeactivation}d | Granted: {r.replacementDaysGranted}d
-                  {r.paidExtraDays > 0 && ` | Extra paid: ${r.paidExtraDays}d`}
-                </p>
-                <p className="text-xs text-slate-500">
-                  {formatDate(r.replacementStartDate)} → {formatDate(r.replacementEndDate)}
-                </p>
-                {r.reason && <p className="text-xs text-slate-400 mt-1">{r.reason}</p>}
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                  <Button size="sm" className="bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:-translate-y-0.5 hover:from-blue-600 hover:to-blue-700" onClick={() => navigate(`/subscriptions/${id}/edit`)}>
+                    <Edit className="h-3.5 w-3.5" />
+                    Edit
+                  </Button>
+                  <Button size="sm" className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:-translate-y-0.5 hover:from-emerald-600 hover:to-emerald-700" onClick={() => navigate(`/subscriptions/${id}/renew`)}>
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    Renew
+                  </Button>
+                  <Button size="sm" className="col-span-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:-translate-y-0.5 hover:from-amber-600 hover:to-orange-600 sm:col-span-1" onClick={() => setReplaceOpen(true)} disabled={!canReplace}>
+                    <ArrowRightLeft className="h-3.5 w-3.5" />
+                    Replace
+                  </Button>
+                </div>
               </div>
-            ))}
-          </CardBody>
-        </Card>
-      )}
+            </CardHeader>
+            <CardBody className="space-y-4">
+              <div className="rounded-2xl border border-white/70 bg-gradient-to-br from-white to-secondary-50/70 p-4 shadow-sm">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Remaining Time</p>
+                    <div className="flex items-center gap-2">
+                      <div className={`min-w-[88px] rounded-2xl bg-gradient-to-br px-4 py-3 text-center transition-all duration-300 ${countdownTone}`}>
+                        <p className="text-3xl font-black leading-none">{animatedRemaining}</p>
+                      </div>
+                      <div className="rounded-2xl border border-slate-200 bg-white px-3 py-3 text-center">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Days</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-full sm:max-w-[340px]">
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Start → End</p>
+                    <p className="text-sm font-semibold text-slate-700">{formatDate(sub.startDate)} → {formatDate(sub.currentEndDate)}</p>
+                    <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-100">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-primary-500 to-accent-500 transition-all duration-700"
+                        style={{ width: `${timelineProgress}%` }}
+                      />
+                    </div>
+                    <div className="mt-1 flex items-center justify-between text-xs text-slate-500">
+                      <span>Elapsed: {elapsedDays}d</span>
+                      <span>Remaining: {remainingDays}d</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-      <Card className="mb-4">
-        <CardHeader><h2 className="text-sm font-semibold text-slate-700">Activity Timeline</h2></CardHeader>
-        <CardBody>
-          <Timeline subscriptionId={id} />
-        </CardBody>
-      </Card>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {detailMetrics.map((metric) => {
+                  const Icon = metric.icon;
+                  return (
+                    <div key={metric.label} className={`rounded-2xl border bg-gradient-to-br p-3 shadow-sm transition-all duration-200 hover:-translate-y-0.5 ${metric.surface}`}>
+                      <div className="flex items-center justify-between">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">{metric.label}</p>
+                        <Icon className={`h-4 w-4 ${metric.accent}`} />
+                      </div>
+                      {metric.badge ? (
+                        <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${metric.accent} bg-white ring-1 ring-current/10`}>
+                          {metric.value}
+                        </span>
+                      ) : (
+                        <p className={`mt-2 text-xl font-bold tracking-tight ${metric.accent}`}>{metric.value}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
 
-      <Card className="mb-4">
-        <CardBody>
-          <MessageTemplates data={templateData} />
-        </CardBody>
-      </Card>
+              <div className="rounded-2xl border border-slate-100 bg-white p-4">
+                <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {detailInfo.map(({ label, value, icon: Icon }) => (
+                    <div key={label} className="rounded-xl border border-slate-100 bg-slate-50/70 px-3 py-2.5 transition-colors hover:bg-slate-50">
+                      <dt className="mb-1 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                        <Icon className="h-3.5 w-3.5" /> {label}
+                      </dt>
+                      <dd className="text-sm font-semibold text-slate-800">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            </CardBody>
+          </Card>
+
+          {replacementsError ? (
+            <Card>
+              <CardBody>
+                <p className="text-sm text-danger-600">Replacement history could not be loaded right now.</p>
+              </CardBody>
+            </Card>
+          ) : replacements?.length > 0 && (
+            <Card>
+              <CardHeader><h2 className="text-sm font-semibold text-slate-700">Replacements</h2></CardHeader>
+              <CardBody className="grid gap-3 sm:grid-cols-2">
+                {replacements.map((r) => (
+                  <div key={r._id} className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4 text-sm">
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="font-medium text-slate-800">{capitalize(r.replacementType)}</span>
+                      <span className="text-xs text-slate-400">{formatDate(r.issueDate)}</span>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      Used: {r.usedDaysBeforeDeactivation}d | Granted: {r.replacementDaysGranted}d
+                      {r.paidExtraDays > 0 && ` | Extra paid: ${r.paidExtraDays}d`}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {formatDate(r.replacementStartDate)} → {formatDate(r.replacementEndDate)}
+                    </p>
+                    {r.reason && <p className="mt-1 text-xs text-slate-400">{r.reason}</p>}
+                  </div>
+                ))}
+              </CardBody>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader><h2 className="text-sm font-semibold text-slate-700">Activity Timeline</h2></CardHeader>
+            <CardBody>
+              <Timeline subscriptionId={id} />
+            </CardBody>
+          </Card>
+        </div>
+
+        <div className="space-y-4 xl:col-span-4">
+          <Card>
+            <CardHeader><h2 className="text-sm font-semibold text-slate-700">Quick Actions</h2></CardHeader>
+            <CardBody className="space-y-2">
+              {sub.paymentStatus !== 'paid' && (
+                <Button size="sm" variant="success" className="w-full justify-center" onClick={handleMarkPaid} loading={paymentMut.isPending}>
+                  <CheckCircle className="h-3.5 w-3.5" /> Mark Paid
+                </Button>
+              )}
+              <Button size="sm" variant="ghost" className="w-full justify-center" onClick={handleArchiveToggle}>
+                {sub.isArchived ? <RotateCcw className="h-3.5 w-3.5" /> : <Archive className="h-3.5 w-3.5" />}
+                {sub.isArchived ? 'Restore Subscription' : 'Archive Subscription'}
+              </Button>
+            </CardBody>
+          </Card>
+
+          {(sub.clientName || sub.clientPhone || sub.clientEmail) && (
+            <Card>
+              <CardHeader><h2 className="text-sm font-semibold text-slate-700">Client Contact</h2></CardHeader>
+              <CardBody className="space-y-2 text-sm">
+                {sub.clientName && (
+                  <span className="flex items-center gap-1.5 text-slate-700"><User className="h-4 w-4 text-slate-400" />{sub.clientName}</span>
+                )}
+                {sub.clientPhone && (
+                  <span className="flex items-center gap-1.5 text-slate-600"><Phone className="h-4 w-4 text-slate-400" />{sub.clientPhone}</span>
+                )}
+                {sub.clientEmail && (
+                  <span className="flex items-center gap-1.5 text-slate-600"><Mail className="h-4 w-4 text-slate-400" />{sub.clientEmail}</span>
+                )}
+              </CardBody>
+            </Card>
+          )}
+
+          {sub.tags?.length > 0 && (
+            <Card>
+              <CardHeader><h2 className="text-sm font-semibold text-slate-700">Tags</h2></CardHeader>
+              <CardBody className="flex flex-wrap gap-2">
+                {sub.tags.map((t) => (
+                  <span key={t} className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-primary-700 ring-1 ring-primary-100">{t}</span>
+                ))}
+              </CardBody>
+            </Card>
+          )}
+
+          {sub.notes && (
+            <Card>
+              <CardHeader><h2 className="text-sm font-semibold text-slate-700">Notes</h2></CardHeader>
+              <CardBody>
+                <div className="flex items-start gap-2">
+                  <FileText className="mt-0.5 h-4 w-4 text-slate-400" />
+                  <p className="text-sm text-slate-600">{sub.notes}</p>
+                </div>
+              </CardBody>
+            </Card>
+          )}
+
+          <Card>
+            <CardBody>
+              <MessageTemplates data={templateData} />
+            </CardBody>
+          </Card>
+        </div>
+      </div>
 
       <Modal open={replaceOpen} onClose={() => setReplaceOpen(false)} title="Issue Replacement" size="lg">
         <div className="space-y-4">

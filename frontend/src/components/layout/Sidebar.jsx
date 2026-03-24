@@ -5,6 +5,7 @@ import {
   CreditCard,
   TrendingUp,
   RefreshCw,
+  HandCoins,
   Layers,
   Bell,
   BarChart3,
@@ -22,6 +23,7 @@ const mainNav = [
   { to: '/subscriptions', icon: CreditCard, label: 'Subscriptions' },
   { to: '/sales', icon: TrendingUp, label: 'Sales' },
   { to: '/renewals', icon: RefreshCw, label: 'Renewals' },
+  { to: '/vendors', icon: HandCoins, label: 'Vendors' },
 ];
 
 const workspaceNav = [

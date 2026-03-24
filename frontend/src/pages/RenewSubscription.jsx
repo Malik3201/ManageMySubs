@@ -12,12 +12,15 @@ import Drawer from '../components/ui/Drawer';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import ErrorState from '../components/ui/ErrorState';
 import { useSubscription, useRenewSubscription } from '../hooks/useSubscriptions';
+import { useVendors } from '../hooks/useVendors';
 import { DURATION_TYPES, PAYMENT_STATUSES } from '../utils/constants';
 import { todayStr, calculateEndDateFromPurchase, formatDate } from '../utils/dateHelpers';
 import { currency } from '../utils/formatters';
 
 const schema = z.object({
   purchaseDate: z.string().optional(),
+  vendorId: z.string().optional(),
+  vendorName: z.string().optional().default(''),
   sellingPrice: z.coerce.number().min(0).optional().default(0),
   purchasePrice: z.coerce.number().min(0).optional().default(0),
   durationType: z.enum(['monthly', 'yearly', 'custom']),
@@ -35,6 +38,7 @@ export default function RenewSubscription() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: sub, isLoading, isError, refetch } = useSubscription(id);
+  const { data: vendors } = useVendors();
   const renewMut = useRenewSubscription();
 
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm({
@@ -50,11 +54,14 @@ export default function RenewSubscription() {
 
   const profitPreview = (Number(sellingPrice) || 0) - (Number(purchasePrice) || 0);
   const endPreview = calculateEndDateFromPurchase(purchaseDate, durationType, customDays);
+  const vendorOptions = (vendors || []).map((v) => ({ value: v._id, label: v.name }));
 
   useEffect(() => {
     if (sub) {
       reset({
         purchaseDate: todayStr(),
+        vendorId: sub.vendorId?._id || '',
+        vendorName: '',
         sellingPrice: sub.sellingPrice,
         purchasePrice: sub.purchasePrice,
         durationType: sub.durationType,
@@ -120,6 +127,10 @@ export default function RenewSubscription() {
             {durationType === 'custom' && (
               <Input label="Custom days" type="number" error={errors.customDays?.message} {...register('customDays')} />
             )}
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Select label="Vendor (optional)" options={vendorOptions} placeholder="Select vendor" {...register('vendorId')} />
+            <Input label="Or new vendor name" placeholder="e.g. Ali" {...register('vendorName')} />
           </div>
         </div>
 
