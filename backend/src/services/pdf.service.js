@@ -1,10 +1,4 @@
-const escapeHtml = (value = '') =>
-  String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+const PDFDocument = require('pdfkit');
 
 const formatMoney = (n) => {
   const num = Number(n || 0);
@@ -20,265 +14,144 @@ const formatDate = (d) => {
   }
 };
 
-const getDurationLabel = (durationType, totalDays) => {
+const durationLabelFromData = (durationType, totalDays) => {
   const type = String(durationType || '').toLowerCase();
   const label = type === 'yearly' ? 'Yearly' : type === 'monthly' ? 'Monthly' : 'Custom';
   return `${label} (${Number(totalDays || 0)} days)`;
 };
 
-const buildHtml = ({
-  businessName,
-  receiptId,
-  clientName,
-  clientWhatsApp,
-  clientEmail,
-  subscriptionName,
-  durationLabel,
-  startDate,
-  endDate,
-  sellingPrice,
-  paymentStatus,
-  profit,
-}) => {
-  return `<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Receipt</title>
-    <style>
-      :root{
-        --bg:#f7f8ff;
-        --card:#ffffff;
-        --text:#0f172a;
-        --muted:#64748b;
-        --primary:#4f46e5;
-        --primary2:#06b6d4;
-        --green:#10b981;
-        --amber:#f59e0b;
-        --red:#ef4444;
-        --border:rgba(15,23,42,.10);
-      }
-      *{ box-sizing:border-box; }
-      body{
-        margin:0;
-        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-        background: radial-gradient(900px 300px at 10% 0%, rgba(79,70,229,.16), transparent 60%),
-                    radial-gradient(700px 260px at 90% 10%, rgba(6,182,212,.14), transparent 55%),
-                    var(--bg);
-        color:var(--text);
-      }
-      .page{
-        padding:28px;
-      }
-      .receipt{
-        width: 100%;
-        max-width: 980px;
-        margin: 0 auto;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        overflow:hidden;
-        box-shadow: 0 18px 60px rgba(2,6,23,.06);
-      }
-      .header{
-        position:relative;
-        padding:22px 26px;
-        background: linear-gradient(90deg, rgba(79,70,229,.95), rgba(6,182,212,.85));
-        color:#fff;
-      }
-      .header:after{
-        content:"";
-        position:absolute;
-        inset:-60px -60px auto auto;
-        width:220px;
-        height:220px;
-        background: rgba(255,255,255,.14);
-        border-radius: 50%;
-        filter: blur(0px);
-        transform: rotate(12deg);
-      }
-      .business{
-        font-size: 18px;
-        font-weight: 800;
-        letter-spacing: .2px;
-        position:relative;
-        z-index:1;
-      }
-      .metaRow{
-        position:relative;
-        z-index:1;
-        margin-top: 10px;
-        display:flex;
-        align-items:flex-start;
-        justify-content:space-between;
-        gap:16px;
-      }
-      .receiptId{
-        background: rgba(255,255,255,.16);
-        border: 1px solid rgba(255,255,255,.22);
-        padding: 8px 12px;
-        border-radius: 14px;
-        font-size: 12px;
-        font-weight: 700;
-      }
-      .grid{
-        padding: 22px 26px 26px;
-        display:grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-      }
-      .box{
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 14px 14px 12px;
-        background: #fff;
-      }
-      .boxTitle{
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing:.14em;
-        text-transform: uppercase;
-        color: var(--muted);
-        margin-bottom: 10px;
-      }
-      .kv{
-        display:flex;
-        align-items:flex-start;
-        justify-content:space-between;
-        gap: 14px;
-        margin: 7px 0;
-      }
-      .k{ color: var(--muted); font-size: 12px; font-weight: 700; }
-      .v{ color: var(--text); font-size: 14px; font-weight: 800; text-align:right; max-width: 60%; }
-      .subscription{
-        grid-column: 1 / -1;
-      }
-      .footer{
-        padding: 0 26px 24px;
-        display:flex;
-        align-items:flex-end;
-        justify-content:space-between;
-        gap: 12px;
-        color: var(--muted);
-        font-size: 12px;
-      }
-      .pill{
-        display:inline-flex;
-        align-items:center;
-        gap:8px;
-        border-radius: 999px;
-        padding: 8px 12px;
-        border: 1px solid var(--border);
-        background: rgba(2,6,23,.02);
-        font-weight:800;
-        color: var(--text);
-      }
-      .dot{
-        width:10px;
-        height:10px;
-        border-radius: 50%;
-        background: var(--green);
-        box-shadow: 0 0 0 6px rgba(16,185,129,.15);
-      }
-      .dot.pending{ background: var(--amber); box-shadow: 0 0 0 6px rgba(245,158,11,.15); }
-      .dot.partially_paid{ background: #8b5cf6; box-shadow: 0 0 0 6px rgba(139,92,246,.14); }
-      .dot.paid{ background: var(--green); }
-      .price{
-        font-size: 22px;
-        font-weight: 900;
-      }
-      @media print {
-        .page{ padding: 0; }
-        .header:after{ display:none; }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="page">
-      <div class="receipt">
-        <div class="header">
-          <div class="business">${escapeHtml(businessName || 'Business')}</div>
-          <div class="metaRow">
-            <div>
-              <div style="font-size:12px;opacity:.9;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Subscription Receipt</div>
-              <div style="margin-top:6px;font-size:14px;opacity:.95;font-weight:800">${escapeHtml(subscriptionName || 'Subscription')}</div>
-            </div>
-            <div class="receiptId">Receipt #${escapeHtml(receiptId || '—')}</div>
-          </div>
-        </div>
+/**
+ * Builds a professional subscription receipt PDF without Chrome/Puppeteer
+ * (works on Vercel serverless and standard Node hosts).
+ */
+const generateReceiptPdf = (data) =>
+  new Promise((resolve, reject) => {
+    const {
+      businessName,
+      receiptId,
+      clientName,
+      clientWhatsApp,
+      clientEmail,
+      subscriptionName,
+      durationLabel,
+      startDate,
+      endDate,
+      sellingPrice,
+      paymentStatus,
+      profit,
+    } = data;
 
-        <div class="grid">
-          <div class="box">
-            <div class="boxTitle">Client info</div>
-            <div class="kv"><div class="k">Name</div><div class="v">${escapeHtml(clientName || '—')}</div></div>
-            <div class="kv"><div class="k">WhatsApp</div><div class="v">${escapeHtml(clientWhatsApp || '—')}</div></div>
-            <div class="kv"><div class="k">Email</div><div class="v">${escapeHtml(clientEmail || '—')}</div></div>
-          </div>
+    const doc = new PDFDocument({
+      size: 'A4',
+      margin: 40,
+      info: { Title: 'Subscription Receipt', Creator: 'ManageMySubs' },
+    });
 
-          <div class="box">
-            <div class="boxTitle">Subscription info</div>
-            <div class="kv"><div class="k">Duration</div><div class="v">${escapeHtml(durationLabel || '—')}</div></div>
-            <div class="kv"><div class="k">Start</div><div class="v">${escapeHtml(formatDate(startDate))}</div></div>
-            <div class="kv"><div class="k">End</div><div class="v">${escapeHtml(formatDate(endDate))}</div></div>
-          </div>
+    const chunks = [];
+    doc.on('data', (c) => chunks.push(c));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
 
-          <div class="box subscription">
-            <div class="boxTitle">Payment</div>
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
-              <div>
-                <div class="pill" style="margin-bottom:12px">
-                  <span class="dot ${escapeHtml(paymentStatus || 'pending')}" aria-hidden="true"></span>
-                  <span>${escapeHtml(String(paymentStatus || 'pending'))}</span>
-                </div>
-                <div style="color:var(--muted);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase">Selling price</div>
-                <div class="price">${escapeHtml(formatMoney(sellingPrice))}</div>
-                <div style="margin-top:6px;color:var(--muted);font-weight:700;font-size:12px">
-                  Profit: <span style="color:var(--primary);font-weight:900">${escapeHtml(formatMoney(profit))}</span>
-                </div>
-              </div>
-              <div style="min-width:240px">
-                <div style="border:1px solid var(--border);border-radius:16px;padding:12px 14px;background:rgba(79,70,229,.03)">
-                  <div style="color:var(--muted);font-weight:800;font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px">Thank you</div>
-                  <div style="font-size:13px;font-weight:700;line-height:1.6">
-                    Receipt generated automatically by ManageMySubs.
-                    Keep this for your records.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+    const pageW = doc.page.width;
+    const margin = 40;
+    const contentW = pageW - margin * 2;
+    const primary = '#4f46e5';
+    const accent = '#06b6d4';
+    const muted = '#64748b';
+    const border = '#e2e8f0';
+    const dark = '#0f172a';
 
-        <div class="footer">
-          <div>Generated at ${escapeHtml(new Date().toLocaleString())}</div>
-          <div style="font-weight:800">ManageMySubs</div>
-        </div>
-      </div>
-    </div>
-  </body>
-</html>`;
-};
+    // --- Header band (gradient-style: two-tone strip) ---
+    doc.save();
+    try {
+      const g = doc.linearGradient(0, 0, pageW, 0);
+      g.stop(0, primary).stop(1, accent);
+      doc.rect(0, 0, pageW, 108).fill(g);
+    } catch {
+      doc.rect(0, 0, pageW, 108).fill(primary);
+    }
+    doc.restore();
 
-const generateReceiptPdf = async (data) => {
-  // Lazy-load to avoid crashing server boot if dependencies are not installed yet.
-  const puppeteer = require('puppeteer');
-  const html = buildHtml(data);
+    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(20).text(String(businessName || 'Your Business'), margin, 32, {
+      width: contentW - 130,
+    });
+    doc.font('Helvetica').fontSize(9).text('SUBSCRIPTION RECEIPT', margin, 58);
+    doc.font('Helvetica-Bold').fontSize(13).text(String(subscriptionName || 'Subscription'), margin, 72);
+    doc
+      .fillColor('#e0e7ff')
+      .font('Helvetica-Bold')
+      .fontSize(9)
+      .text(`Receipt #${receiptId || '—'}`, margin, 42, { width: contentW, align: 'right' });
 
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    let y = 128;
+
+    const drawSectionTitle = (x, yy, title) => {
+      doc.fillColor(muted).font('Helvetica-Bold').fontSize(8).text(title.toUpperCase(), x, yy);
+    };
+
+    const drawKV = (x, yy, label, value, maxW) => {
+      doc.fillColor(muted).font('Helvetica').fontSize(9).text(label, x, yy, { width: 90 });
+      doc.fillColor(dark).font('Helvetica-Bold').fontSize(10).text(String(value || '—'), x + 92, yy, {
+        width: maxW - 92,
+        align: 'left',
+      });
+    };
+
+    const gap = 14;
+    const colW = (contentW - gap) / 2;
+    const boxH = 108;
+
+    // Client + Subscription columns
+    doc.roundedRect(margin, y, colW, boxH, 10).stroke(border);
+    drawSectionTitle(margin + 12, y + 12, 'Client info');
+    drawKV(margin + 12, y + 30, 'Name', clientName, colW - 24);
+    drawKV(margin + 12, y + 48, 'WhatsApp', clientWhatsApp, colW - 24);
+    drawKV(margin + 12, y + 66, 'Email', clientEmail, colW - 24);
+
+    const x2 = margin + colW + gap;
+    doc.roundedRect(x2, y, colW, boxH, 10).stroke(border);
+    drawSectionTitle(x2 + 12, y + 12, 'Subscription info');
+    const dur = durationLabel || durationLabelFromData(data.durationType, data.totalDays);
+    drawKV(x2 + 12, y + 30, 'Duration', dur, colW - 24);
+    drawKV(x2 + 12, y + 48, 'Start date', formatDate(startDate), colW - 24);
+    drawKV(x2 + 12, y + 66, 'End date', formatDate(endDate), colW - 24);
+
+    y += boxH + gap;
+
+    // Payment block (full width)
+    const payH = 120;
+    doc.roundedRect(margin, y, contentW, payH, 10).stroke(border);
+    doc.rect(margin, y, contentW, 28).fill('#f8fafc');
+    doc.fillColor(muted).font('Helvetica-Bold').fontSize(8).text('PAYMENT', margin + 12, y + 10);
+
+    const status = String(paymentStatus || 'pending');
+    doc.fillColor(dark).font('Helvetica-Bold').fontSize(11).text(`Status: ${status}`, margin + 12, y + 38);
+    doc.fillColor(muted).font('Helvetica').fontSize(9).text('Selling price', margin + 12, y + 58);
+    doc.fillColor(primary).font('Helvetica-Bold').fontSize(22).text(formatMoney(sellingPrice), margin + 12, y + 72);
+    doc.fillColor(muted).font('Helvetica').fontSize(9).text(`Profit (realized): ${formatMoney(profit)}`, margin + 12, y + 98);
+
+    doc
+      .fillColor(muted)
+      .font('Helvetica')
+      .fontSize(8)
+      .text('Thank you — receipt generated by ManageMySubs. Keep for your records.', margin + 220, y + 42, {
+        width: contentW - 232,
+        lineGap: 2,
+      });
+
+    y += payH + 24;
+
+    doc
+      .fillColor(muted)
+      .font('Helvetica')
+      .fontSize(8)
+      .text(`Generated at ${new Date().toLocaleString()}`, margin, y, { width: contentW / 2 });
+    doc.fillColor(primary).font('Helvetica-Bold').text('ManageMySubs', margin + contentW / 2, y, {
+      width: contentW / 2,
+      align: 'right',
+    });
+
+    doc.end();
   });
 
-  try {
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-    const buffer = await page.pdf({ format: 'A4', printBackground: true, margin: { top: 20, right: 18, bottom: 18, left: 18 } });
-    return buffer;
-  } finally {
-    await browser.close();
-  }
-};
-
 module.exports = { generateReceiptPdf };
-

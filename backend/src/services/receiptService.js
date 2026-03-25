@@ -38,7 +38,13 @@ const generateReceiptNow = async (userId, subscriptionId, { overwrite = false } 
 
   const settings = await settingsService.getOrCreate(userId);
   const subscriptionName = sub.categoryId?.name || 'Subscription';
-  const durationLabel = `${String(sub.durationType || '').toLowerCase() === 'yearly' ? 'Yearly' : 'Monthly'} (${Number(sub.totalDays || 0)} days)`;
+  const dt = String(sub.durationType || '').toLowerCase();
+  const durationLabel =
+    dt === 'yearly'
+      ? `Yearly (${Number(sub.totalDays || 0)} days)`
+      : dt === 'custom'
+        ? `Custom (${Number(sub.totalDays || 0)} days)`
+        : `Monthly (${Number(sub.totalDays || 0)} days)`;
 
   const businessName = settings.businessName || 'Your Business';
 
