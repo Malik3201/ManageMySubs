@@ -1,6 +1,27 @@
 const ClientSubscription = require('../models/ClientSubscription');
 const { startOfDay, endOfDay, startOfMonth, endOfMonth } = require('../utils/dateHelpers');
 
+// Realized profit depends on payment status.
+// - pending => 0
+// - paid => full profit
+// - partially_paid => profit scaled by amountReceived / sellingPrice
+const realizedProfit = (s) => {
+  const sale = s.sellingPrice || 0;
+  const purchase = s.purchasePrice || 0;
+  const profit = sale - purchase;
+
+  if (s.paymentStatus === 'pending') return 0;
+  if (s.paymentStatus === 'paid') return profit;
+
+  if (s.paymentStatus === 'partially_paid') {
+    const ratio = sale > 0 ? (s.amountReceived || 0) / sale : 0;
+    return profit * ratio;
+  }
+
+  // Fallback for older docs / unknown statuses.
+  return profit;
+};
+
 const getSalesReport = async (userId, query = {}) => {
   const { from, to, groupBy = 'daily' } = query;
   const start = from ? new Date(from) : startOfMonth();
@@ -21,7 +42,7 @@ const getSalesReport = async (userId, query = {}) => {
       const key = new Date(s.purchaseDate).toISOString().split('T')[0];
       if (!map[key]) map[key] = { date: key, sales: 0, profit: 0, count: 0 };
       map[key].sales += s.sellingPrice || 0;
-      map[key].profit += (s.sellingPrice || 0) - (s.purchasePrice || 0);
+      map[key].profit += realizedProfit(s);
       map[key].count += 1;
     });
     return { rows: Object.values(map), total: subs.length };
@@ -33,7 +54,7 @@ const getSalesReport = async (userId, query = {}) => {
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     if (!map[key]) map[key] = { month: key, sales: 0, profit: 0, count: 0 };
     map[key].sales += s.sellingPrice || 0;
-    map[key].profit += (s.sellingPrice || 0) - (s.purchasePrice || 0);
+    map[key].profit += realizedProfit(s);
     map[key].count += 1;
   });
   return { rows: Object.values(map), total: subs.length };
@@ -60,7 +81,7 @@ const getProfitReport = async (userId, query = {}) => {
     const catName = s.categoryId?.name || 'Unknown';
     if (!byCategory[catName]) byCategory[catName] = { category: catName, sales: 0, profit: 0, count: 0 };
     const sale = s.sellingPrice || 0;
-    const profit = sale - (s.purchasePrice || 0);
+    const profit = realizedProfit(s);
     byCategory[catName].sales += sale;
     byCategory[catName].profit += profit;
     byCategory[catName].count += 1;

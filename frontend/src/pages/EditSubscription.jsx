@@ -28,7 +28,10 @@ const schema = z.object({
   amountReceived: z.coerce.number().min(0).optional(),
   notes: z.string().optional(),
   tags: z.array(z.string()).optional(),
-  lifecycleOverride: z.enum(['none', 'active', 'expiring', 'expired', 'replacement']).optional().default('none'),
+  lifecycleOverride: z.preprocess(
+    (v) => (v === '' || v == null ? 'none' : v),
+    z.enum(['none', 'active', 'expiring', 'expired', 'replacement'])
+  ).optional(),
 });
 
 const LIFECYCLE_OVERRIDE_OPTIONS = [
@@ -48,6 +51,7 @@ export default function EditSubscription() {
 
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
     resolver: zodResolver(schema),
+    defaultValues: { lifecycleOverride: 'none' },
   });
 
   const tags = watch('tags') || [];

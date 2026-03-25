@@ -50,10 +50,10 @@ const updateSubscriptionSchema = z.object({
   amountReceived: z.number().min(0).optional(),
   notes: z.string().max(2000).optional(),
   tags: z.array(z.string().max(50)).max(20).optional(),
-  lifecycleOverride: z
-    .enum(['none', 'active', 'expiring', 'expired', 'replacement'])
-    .optional()
-    .default('none'),
+  lifecycleOverride: z.preprocess(
+    (v) => (v === '' || v == null ? 'none' : v),
+    z.enum(['none', 'active', 'expiring', 'expired', 'replacement'])
+  ).optional(),
 }).superRefine((data, ctx) => {
   if (data.paymentStatus === 'partially_paid' && data.amountReceived !== undefined && data.amountReceived <= 0) {
     ctx.addIssue({
