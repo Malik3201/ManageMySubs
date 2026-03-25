@@ -20,6 +20,9 @@ import Sales from './pages/Sales';
 import Renewals from './pages/Renewals';
 import Vendors from './pages/Vendors';
 import VendorDetail from './pages/VendorDetail';
+import Resellers from './pages/Resellers';
+import ResellerDetail from './pages/ResellerDetail';
+import ResellerOrders from './pages/ResellerOrders';
 
 export default function App() {
   const initialize = useAuthStore((s) => s.initialize);
@@ -46,6 +49,9 @@ export default function App() {
         <Route path="renewals" element={<Renewals />} />
         <Route path="vendors" element={<Vendors />} />
         <Route path="vendors/:id" element={<VendorDetail />} />
+        <Route path="resellers" element={<Resellers />} />
+        <Route path="resellers/:id" element={<ResellerDetail />} />
+        <Route path="reseller-orders" element={<ResellerOrders />} />
         <Route path="categories" element={<Categories />} />
         <Route path="subscriptions" element={<Subscriptions />} />
         <Route path="subscriptions/new" element={<CreateSubscription />} />

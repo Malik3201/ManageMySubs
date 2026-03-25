@@ -6,6 +6,7 @@ import {
   TrendingUp,
   RefreshCw,
   HandCoins,
+  Store,
   Layers,
   Bell,
   BarChart3,
@@ -24,6 +25,8 @@ const mainNav = [
   { to: '/sales', icon: TrendingUp, label: 'Sales' },
   { to: '/renewals', icon: RefreshCw, label: 'Renewals' },
   { to: '/vendors', icon: HandCoins, label: 'Vendors' },
+  { to: '/resellers', icon: Store, label: 'Resellers' },
+  { to: '/reseller-orders', icon: Store, label: 'Reseller Orders' },
 ];
 
 const workspaceNav = [

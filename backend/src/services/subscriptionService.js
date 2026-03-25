@@ -59,6 +59,9 @@ const buildFilter = (userId, query) => {
 
   if (query.paymentStatus) filter.paymentStatus = query.paymentStatus;
   if (query.categoryId) filter.categoryId = query.categoryId;
+  if (query.isResellerSale === 'true') filter.isResellerSale = true;
+  if (query.isResellerSale === 'false') filter.isResellerSale = false;
+  if (query.resellerId) filter.resellerId = query.resellerId;
 
   if (query.search?.trim()) {
     const regex = new RegExp(escapeRegex(query.search.trim()), 'i');
@@ -129,6 +132,7 @@ const list = async (userId, query = {}) => {
     ClientSubscription.find(filter)
       .populate('categoryId', 'name')
       .populate('vendorId', 'name totalPayable totalPaid balance')
+      .populate('resellerId', 'name phone')
       .sort(sort)
       .skip(skip)
       .limit(limit)
@@ -144,6 +148,7 @@ const getById = async (userId, id) => {
   const sub = await ClientSubscription.findOne({ _id: id, userId })
     .populate('categoryId', 'name defaultPurchasePrice')
     .populate('vendorId', 'name totalPayable totalPaid balance')
+    .populate('resellerId', 'name phone')
     .populate('parentSubscriptionId', 'clientName purchaseDate');
   if (!sub) throw ApiError.notFound('Subscription not found');
   return enrichSubscription(sub);

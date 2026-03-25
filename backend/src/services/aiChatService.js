@@ -13,7 +13,6 @@ const AiEnvelopeSchema = z.object({
     'find_customer',
     'get_customer_history',
     'list_pending_payments',
-    'lookup_subscription',
     'none',
   ]),
   data: z.record(z.string(), z.unknown()).optional().default({}),

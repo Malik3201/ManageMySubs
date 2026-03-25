@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, ChevronDown, Layers, Bell, BarChart3, Settings, Sparkles, HandCoins } from 'lucide-react';
+import { Menu, ChevronDown, Layers, Bell, BarChart3, Settings, Sparkles, HandCoins, Store } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '../../utils/cn';
@@ -10,6 +10,8 @@ const moreLinks = [
   { to: '/reminders', label: 'Reminders', icon: Bell },
   { to: '/reports', label: 'Reports', icon: BarChart3 },
   { to: '/vendors', label: 'Vendors', icon: HandCoins },
+  { to: '/resellers', label: 'Resellers', icon: Store },
+  { to: '/reseller-orders', label: 'Reseller Orders', icon: Store },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
