@@ -4,6 +4,7 @@ const ActivityLog = require('../models/ActivityLog');
 const ApiError = require('../utils/apiError');
 const { resolvePaymentFields } = require('../utils/paymentHelpers');
 const { resolveVendor, recalcVendorTotals } = require('./vendorAccountingService');
+const { attachReceiptIfEnabled } = require('./receiptService');
 const {
   getTotalDays,
   calculateEndDate,
@@ -209,6 +210,9 @@ const create = async (userId, data) => {
     await recalcVendorTotals(userId, vendor._id);
   }
 
+  // Generate/upload receipt in background (never block sale creation).
+  void attachReceiptIfEnabled(userId, sub._id);
+
   return enrichSubscription(sub);
 };
 
@@ -368,6 +372,9 @@ const renew = async (userId, id, data) => {
   if (renewed.vendorId) {
     await recalcVendorTotals(userId, renewed.vendorId);
   }
+
+  // Generate/upload receipt in background (never block renewal creation).
+  void attachReceiptIfEnabled(userId, renewed._id);
 
   return enrichSubscription(renewed);
 };

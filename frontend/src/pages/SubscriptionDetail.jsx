@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Edit, RefreshCw, ArrowRightLeft, Archive, RotateCcw,
   CreditCard, Calendar, Clock, User, Phone, Mail, Tag, FileText, DollarSign, CheckCircle,
+  Download, MessageCircle,
 } from 'lucide-react';
 import { useSubscription, useToggleArchiveSubscription } from '../hooks/useSubscriptions';
 import { useReplacements, useCreateReplacement } from '../hooks/useReplacements';
@@ -58,6 +59,17 @@ export default function SubscriptionDetail() {
     return () => clearInterval(interval);
   }, [sub?.remainingDays]);
 
+  // If receipt is being generated in background, poll for a short time.
+  useEffect(() => {
+    if (!sub || sub.receiptUrl) return;
+    const timer = setInterval(() => refetch(), 5000);
+    const stop = setTimeout(() => clearInterval(timer), 30000);
+    return () => {
+      clearInterval(timer);
+      clearTimeout(stop);
+    };
+  }, [sub?.receiptUrl, refetch]);
+
   if (isLoading) return <LoadingSpinner size="lg" className="py-20" />;
   if (isError || !sub) {
     return (
@@ -91,6 +103,27 @@ export default function SubscriptionDetail() {
       { subscriptionId: id, data: { ...replaceForm, usedDaysBeforeDeactivation: Number(replaceForm.usedDaysBeforeDeactivation), paidExtraDays: Number(replaceForm.paidExtraDays) } },
       { onSuccess: () => setReplaceOpen(false) }
     );
+  };
+
+  const openReceipt = () => {
+    if (!sub.receiptUrl) return;
+    window.open(sub.receiptUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const downloadReceipt = () => {
+    if (!sub.receiptUrl) return;
+    // We store a public Drive web link, so we open it in a new tab.
+    window.open(sub.receiptUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const shareWhatsApp = () => {
+    if (!sub.receiptUrl || !sub.clientPhone) return;
+    const phone = String(sub.clientPhone).replace(/\D/g, '');
+    if (!phone) return;
+
+    const message = `Salam 👋\nApki subscription receipt yahan dekhein:\n${sub.receiptUrl}`;
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const templateData = {
@@ -207,6 +240,33 @@ export default function SubscriptionDetail() {
                     <ArrowRightLeft className="h-3.5 w-3.5" />
                     Replace
                   </Button>
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-slate-900 to-slate-800 text-white hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:-translate-y-0.5 sm:flex-1"
+                    onClick={openReceipt}
+                    disabled={!sub.receiptUrl}
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    View Receipt
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:-translate-y-0.5 sm:flex-1"
+                    onClick={downloadReceipt}
+                    disabled={!sub.receiptUrl}
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Download
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="col-span-2 bg-gradient-to-r from-emerald-500 to-success-600 text-white hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:-translate-y-0.5"
+                    onClick={shareWhatsApp}
+                    disabled={!sub.receiptUrl || !sub.clientPhone}
+                  >
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    WhatsApp Share
+                  </Button>
                 </div>
               </div>
             </CardHeader>
@@ -316,6 +376,30 @@ export default function SubscriptionDetail() {
         </div>
 
         <div className="space-y-4 xl:col-span-4">
+          <Card>
+            <CardHeader>
+              <h2 className="text-sm font-semibold text-slate-700">Receipt</h2>
+            </CardHeader>
+            <CardBody className="space-y-2">
+              {sub.receiptUrl ? (
+                <>
+                  <p className="text-sm text-emerald-700 font-semibold">Receipt is ready</p>
+                  <button
+                    type="button"
+                    onClick={openReceipt}
+                    className="w-full rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-100 transition"
+                  >
+                    View in browser
+                  </button>
+                </>
+              ) : (
+                <p className="text-sm text-slate-500">
+                  Receipt is generating. Please wait a few seconds and refresh if it doesn't appear.
+                </p>
+              )}
+            </CardBody>
+          </Card>
+
           <Card>
             <CardHeader><h2 className="text-sm font-semibold text-slate-700">Quick Actions</h2></CardHeader>
             <CardBody className="space-y-2">

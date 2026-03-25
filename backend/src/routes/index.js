@@ -12,5 +12,6 @@ router.use('/reports', auth, require('./reports'));
 router.use('/ai', require('./ai'));
 router.use('/vendors', auth, require('./vendors'));
 router.use('/resellers', auth, require('./resellers'));
+router.use('/settings', auth, require('./settings'));
 
 module.exports = router;
