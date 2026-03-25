@@ -4,7 +4,7 @@ const ActivityLog = require('../models/ActivityLog');
 const ApiError = require('../utils/apiError');
 const { resolvePaymentFields } = require('../utils/paymentHelpers');
 const { resolveVendor, recalcVendorTotals } = require('./vendorAccountingService');
-const { attachReceiptIfEnabled } = require('./receiptService');
+const { attachReceiptIfEnabled, generateReceiptNow } = require('./receiptService');
 const {
   getTotalDays,
   calculateEndDate,
@@ -379,4 +379,21 @@ const renew = async (userId, id, data) => {
   return enrichSubscription(renewed);
 };
 
-module.exports = { list, getById, create, update, toggleArchive, renew };
+const generateReceipt = async (userId, id) => {
+  const sub = await ClientSubscription.findOne({ _id: id, userId });
+  if (!sub) throw ApiError.notFound('Subscription not found');
+
+  const url = await generateReceiptNow(userId, id, { overwrite: true });
+
+  const updated = await ClientSubscription.findOne({ _id: id, userId })
+    .populate('categoryId', 'name defaultPurchasePrice')
+    .populate('vendorId', 'name totalPayable totalPaid balance')
+    .populate('resellerId', 'name phone')
+    .populate('parentSubscriptionId', 'clientName purchaseDate');
+
+  const enriched = enrichSubscription(updated);
+  enriched.receiptUrl = url || enriched.receiptUrl;
+  return enriched;
+};
+
+module.exports = { list, getById, create, update, toggleArchive, renew, generateReceipt };

@@ -17,3 +17,6 @@ export const toggleArchiveSubscription = (id) =>
 
 export const renewSubscription = (id, data) =>
   api.post(`/subscriptions/${id}/renew`, data).then((r) => r.data.data);
+
+export const generateSubscriptionReceipt = (id) =>
+  api.post(`/subscriptions/${id}/receipt`).then((r) => r.data.data);

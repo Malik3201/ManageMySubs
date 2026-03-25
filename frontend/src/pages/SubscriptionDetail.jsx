@@ -5,7 +5,11 @@ import {
   CreditCard, Calendar, Clock, User, Phone, Mail, Tag, FileText, DollarSign, CheckCircle,
   Download, MessageCircle,
 } from 'lucide-react';
-import { useSubscription, useToggleArchiveSubscription } from '../hooks/useSubscriptions';
+import {
+  useSubscription,
+  useToggleArchiveSubscription,
+  useGenerateSubscriptionReceipt,
+} from '../hooks/useSubscriptions';
 import { useReplacements, useCreateReplacement } from '../hooks/useReplacements';
 import { useUpdatePayment } from '../hooks/usePayments';
 import Card, { CardBody, CardHeader } from '../components/ui/Card';
@@ -30,6 +34,7 @@ export default function SubscriptionDetail() {
   const { data: sub, isLoading, isError, refetch } = useSubscription(id);
   const { data: replacements, isError: replacementsError } = useReplacements(id);
   const archiveMut = useToggleArchiveSubscription();
+  const receiptMut = useGenerateSubscriptionReceipt();
   const paymentMut = useUpdatePayment();
   const replacementMut = useCreateReplacement();
 
@@ -124,6 +129,10 @@ export default function SubscriptionDetail() {
     const message = `Salam 👋\nApki subscription receipt yahan dekhein:\n${sub.receiptUrl}`;
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleGenerateReceipt = () => {
+    receiptMut.mutate(id);
   };
 
   const templateData = {
@@ -266,6 +275,15 @@ export default function SubscriptionDetail() {
                   >
                     <MessageCircle className="h-3.5 w-3.5" />
                     WhatsApp Share
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="col-span-2 bg-gradient-to-r from-violet-500 to-violet-600 text-white hover:-translate-y-0.5"
+                    onClick={handleGenerateReceipt}
+                    loading={receiptMut.isPending}
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    Generate Receipt
                   </Button>
                 </div>
               </div>
