@@ -6,7 +6,6 @@ const ActivityLog = require('../models/ActivityLog');
 const ApiError = require('../utils/apiError');
 const { resolvePaymentFields } = require('../utils/paymentHelpers');
 const { calculateEndDate, getTotalDays } = require('../utils/dateHelpers');
-const { attachReceiptIfEnabled } = require('./receiptService');
 
 const list = async (userId) => {
   const [resellers, orders] = await Promise.all([
@@ -178,9 +177,6 @@ const createOrder = async (userId, data) => {
       sellingPrice: pricing.sellingPrice,
     },
   });
-
-  // Generate/upload receipt in background (never block reseller order creation).
-  void attachReceiptIfEnabled(userId, order._id);
 
   return ClientSubscription.findById(order._id)
     .populate('categoryId', 'name')

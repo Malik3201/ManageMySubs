@@ -62,18 +62,4 @@ const renew = async (req, res, next) => {
   }
 };
 
-const generateReceipt = async (req, res, next) => {
-  try {
-    const sub = await subscriptionService.generateReceipt(req.userId, req.params.id);
-    ApiResponse.success(res, sub, 'Receipt generated');
-  } catch (err) {
-    console.error('[subscription.generateReceipt] failed', {
-      userId: req.userId?.toString?.(),
-      subscriptionId: req.params?.id,
-      error: err?.message,
-    });
-    next(err);
-  }
-};
-
-module.exports = { list, getById, create, update, toggleArchive, renew, generateReceipt };
+module.exports = { list, getById, create, update, toggleArchive, renew };

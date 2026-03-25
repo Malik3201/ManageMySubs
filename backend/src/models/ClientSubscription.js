@@ -60,7 +60,6 @@ const clientSubscriptionSchema = new mongoose.Schema(
     paymentMethod: { type: String, trim: true, default: '' },
     amountReceived: { type: Number, default: 0 },
     amountRemaining: { type: Number, default: 0 },
-    receiptUrl: { type: String, trim: true, default: '' },
     notes: { type: String, trim: true, default: '' },
     tags: [{ type: String, trim: true }],
     isArchived: { type: Boolean, default: false },

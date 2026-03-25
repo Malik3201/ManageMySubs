@@ -1,22 +1,10 @@
-import { useEffect, useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import Card, { CardBody, CardHeader } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { LogOut, User, Mail, Shield } from 'lucide-react';
-import Input from '../components/ui/Input';
-import LoadingSpinner from '../components/ui/LoadingSpinner';
-import ErrorState from '../components/ui/ErrorState';
-import { useSettings, useUpdateSettings } from '../hooks/useSettings';
 
 export default function Settings() {
   const { user, logout } = useAuthStore();
-  const { data: settings, isLoading, isError, refetch } = useSettings();
-  const updateMut = useUpdateSettings();
-  const [businessName, setBusinessName] = useState('');
-
-  useEffect(() => {
-    if (settings?.businessName) setBusinessName(settings.businessName);
-  }, [settings]);
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -64,44 +52,6 @@ export default function Settings() {
           <Button variant="danger" onClick={logout}>
             <LogOut className="h-4 w-4" /> Logout
           </Button>
-        </CardBody>
-      </Card>
-
-      <Card className="mb-4">
-        <CardHeader>
-          <h2 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-            <Mail className="h-4 w-4" /> Receipt settings
-          </h2>
-        </CardHeader>
-        <CardBody className="space-y-3">
-          {isLoading ? (
-            <LoadingSpinner />
-          ) : isError ? (
-            <ErrorState
-              title="Settings unavailable"
-              description="We couldn't load your receipt settings."
-              onRetry={refetch}
-            />
-          ) : (
-            <>
-              <Input
-                label="Business name (shown on receipt header)"
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                placeholder="e.g. Prosols Tools"
-              />
-              {updateMut.isError && (
-                <p className="text-sm text-danger-600">
-                  {updateMut.error?.response?.data?.error?.message || 'Failed to save settings'}
-                </p>
-              )}
-              <div className="flex justify-end">
-                <Button loading={updateMut.isPending} onClick={() => updateMut.mutate({ businessName })}>
-                  Save
-                </Button>
-              </div>
-            </>
-          )}
         </CardBody>
       </Card>
 

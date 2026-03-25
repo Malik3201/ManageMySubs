@@ -74,18 +74,3 @@ export const useRenewSubscription = () => {
     },
   });
 };
-
-export const useGenerateSubscriptionReceipt = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: subsApi.generateSubscriptionReceipt,
-    onSuccess: (_, id) => {
-      invalidateSubsAndDash(qc);
-      qc.invalidateQueries({ queryKey: ['subscriptions', id] });
-      toast.success('Receipt generated');
-    },
-    onError: (err) => {
-      toast.error(err?.response?.data?.error?.message || 'Could not generate receipt');
-    },
-  });
-};
